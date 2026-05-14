@@ -1,0 +1,870 @@
+\section{Routing}
+\subsection{Introduction}
+\subsubsection*{Wohin werden Pakete geschickt?}
+Wenn ein Paket bei einem Router (auch \enquote{Switching Element}) ankommt, muss dieser entscheiden: \enquote{An welchen Nachbarn leite ich dieses Paket weiter, damit es sein Ziel erreicht?}\\
+Diese Entscheidung basiert auf Routing-Informationen, nicht auf Zufall
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Chapter 2_Images/Wohin werden Pakete geschickt.jpeg}
+\end{figure}
+\subsubsection*{Grundbegriffe}
+\fatsf{Weiterleitung (Forwarding)}
+\begin{itemize}
+    \item Der Vorgang, bei dem ein Router ankommendes Paket an den passenden Ausgang (nächsten Knoten) weiterleitet
+    \item Vergleich: \enquote{An welcher Ausfahrt verlasse ich den Kreisverkehr?}
+\end{itemize}
+\fatsf{Routing}
+\begin{itemize}
+    \item Der Prozess, mit dem berechnet wird, wie ein Paket durch das Netzwerk gelangen soll
+    \item Vergleich: \enquote{Wie plane ich die beste Route von A nach B?}
+\end{itemize}
+Routing erstellt die Karte, \\
+Forwarding nutzt sie für jeden einzelnen Schritt
+\subsubsection*{Wie weiß der Router, wohin?}
+Router benutzen eine sogenannte Routing-Tabelle, die durch Routing-Algorithmen aufgebaut wird:
+\begin{enumerate}
+    \item Router kommunizieren untereinander über Routing-Protokolle (z.B. OSPF, BGP, RIP)
+    \item Diese Protokolle tauschen Informationen über die Netzwerkstruktur aus
+    \item Jeder Router baut daraus seine eigene Routing-Tabelle - wie ein Navi
+    \item Wenn ein Paket ankommt:
+    \begin{itemize}
+        \item Der Router schaut auf die Zieladresse
+        \item Er sucht in der Tabelle den besten nächsten Knoten (next hop)
+        \item Dann leitet er das Paket dorthin weiter
+    \end{itemize}
+\end{enumerate}
+\subsubsection*{Große Netzwerke bauen}
+Einfach Verfahren wie:
+\begin{itemize}
+    \item Flooding (Paket an alle Nachbarn schicken),
+    \item Hot-Potato (schnellstmögliche Weiterleitung ohen Plan),
+\end{itemize}
+...sind ineffizient in großen Netzwerken\\
+Sie erzeugen zu viel Datenverkehr oder führen zu schlechten Routen\\
+Deshalb braucht man strukturierte Routing-Algorithmen, um \enquote{beste Wege} zu berechnen
+\subsubsection*{Analogie: Reisen}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lll}
+        \toprule
+        \fatsf{Begriff} & \fatsf{Netzwerk} & \fatsf{Analogie}\\
+        \midrule
+        Routing & Routenplanung & Reisen planen (z.B. mit Google Maps)\\
+        Forwarding & Weiterleiten & Nächste Abzweigung nehmen\\
+        Routing-Tabelle & Wegweiser/Karte & Navigationskarte\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Forwarding}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\linewidth]{Chapter 2_Images/Forwarding.jpeg}
+\end{figure}
+\fatsf{Begriffe}
+\begin{itemize}
+    \item \fatsf{Router:} Vermittelt Pakete zwischen Netzwerken
+    \item \fatsf{Bridge / Switch / Hub / Gateway:} Ähnliche Geräte auf anderen Ebenen oder mit anderen Aufgaben:
+    \begin{itemize}
+        \item Bridge: verbindet zwei Netzwerksegmente auf Layer 2 (Data Link Layer)
+        \item Switch: arbeitet wie ein Bridge, aber effizienter (Multiport-Bridge)
+        \item Hub: einfache \enquote{Verteilerdose}, keine Intelligenz
+        \item Gateway: Verbindung zu anderen Netzwerktypen/Protokollen (oft auf höheren Ebenen)
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Beispiel: Routing-Tabelle in Aktion}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 2_Images/Beispiel Forwarding.jpeg}
+\end{figure}
+Was heißt das konkret?
+\begin{itemize}
+    \item \enquote{Direkt zustellbar} bedeutet: Das Zielnetzwerk (N2 oder N3) ist direkt an R2 angeschlossen. R2 kennt die genauen Schnittstellen und kann das Paket ohne Umweg direkt in das Netzwerk schicken
+    \item \enquote{R1} bzw. \enquote{R3} als \enquote{Nächster Hop} bedeutet: R2 weiß, dass er das Paket an einen benachbarten Router weiterleiten muss, der näher am Ziel ist. Dieser andere Router übernimmt dann die weitere Weiterleitung
+\end{itemize}
+Hinweis: Die echte Routing-Tabelle enthält IP-Adressen, Netzmasken, Flags usw., nicht nur solche symbolischen Namen
+\subsubsection*{Routing}
+\fatsf{Was ist Routing - und wie funktioniert es?}\\
+Routing ist eine Kernaufgabe in Computernetzwerken, insbesondere im sogenannten Netzwerk-Layer (Schicht 3 im OSI-Modell). Dabei geht es darum, einen geeigneten Pfad (Route) für Datenpakete von einer Quelle (z.B. Computer A) zu einem Ziel (z.B. Computer B) zu finden - über eventuell viele Zwischenstationen (Router)
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Chapter 2_Images/Routing.jpeg}
+\end{figure}
+\clearpage
+Man unterscheidet zwei Aufgaben bei Routern:
+\begin{enumerate}
+    \item \fatsf{Routing (Wegwahl):}
+    \begin{itemize}
+        \item Ein Router entschiedet grundsätzlich, welcher Weg (Pfad) zu einem Ziel sinnvoll ist
+        \item Dazu verwendet er \fatsf{Routing-Algorithmen}
+        \item Diese Algorithmen berücksichtigen oft Metriken wie:
+        \begin{itemize}
+            \item Anzahl der Hops (also wie viele Router der Pfad durchläuft)
+            \item Auslastung oder Kapazität einer Verbindung
+            \item Verzögerung (Delay)
+        \end{itemize}
+    \end{itemize}
+    Das Ziel ist meist: Ein möglichst \enquote{günstiger} oder \enquote{schneller} Pfad (oft geringste Kosten)
+    \item \fatsf{Forwarding (Weiterleitung)}
+    \begin{itemize}
+        \item Das ist die konkrete Aktion, wenn ein Paket eintrifft:
+        \begin{itemize}
+            \item Der Router schaut in seiner \fatsf{Routing-Tabelle} nach, 
+            \item findet den passenden Ausgangsport (\enquote{nächster Hop})
+            \item und leitet das Paket dorthin weiter
+        \end{itemize}
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.75\linewidth]{Chapter 2_Images/Routing: A Functional Sketch.jpeg}
+    \end{figure}
+    \begin{figure}[h]
+        \centering
+        \begin{minipage}[b]{0.55\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Chapter 2_Images/Router 1.jpeg}
+        \end{minipage}
+        \hfill
+        \begin{minipage}[b]{0.35\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Chapter 2_Images/Router 2.jpeg}
+        \end{minipage}
+    \end{figure}
+\end{enumerate}
+\fatsf{Wie entsteht eine Routing-Tabelle?}\\
+Diese Tabelle wird von einem \fatsf{Routing-Algorithmus} aufgebaut und regelmäßig aktualisiert - entweder:
+\begin{itemize}
+    \item periodisch (z.B. alle 30 Sekunden), oder
+    \item bei einer Änderung im Netzwerk (z.B. wenn ein Router ausfällt)
+\end{itemize}
+\fatsf{Unterschied: Verbindungslos vs. verbindungsorientiert}
+\begin{itemize}
+    \item In verbindungslosen Netzwerken (wie dem heutigen Internet) wird Routing unabhängig für jedes einzelne Paket gemacht
+    \begin{itemize}
+        \item Jedes Paket enthält die Zieladresse
+        \item Der Router entscheidet jedes Mal anhand der Adresse, wohin es geht
+    \end{itemize}
+    \item In verbindungsorientierten Netzwerken (z.B. ATM, MPLS) wird beim Verbindungsaufbau der Pfad einmal bestimmt
+    \begin{itemize}
+        \item Danach bekommen die Pakete eine ID (Circuit ID)
+        \item Der Router muss sich nur merken: \enquote{Paket mit ID X $\rightarrow$ weiter über Port Y}
+    \end{itemize}
+\end{itemize}
+\fatsf{Virtual Circuit (CONS) vs Datagram (CLNS):}
+\begin{itemize}
+    \item \fatsf{Virtual Circuit (CONS):}
+    \begin{itemize}
+        \item In diesem Modell wird eine \fatsf{Verbindung} zwischen den Endsystemen vor der Datenübertragung aufgebaut
+        \item \fatsf{Routing-Algorithmus} wird \fatsf{während der Verbindungsaufbauphase} durchgeführt
+        \item Während der Kommunikation wird nicht die Zieladresse verwendet, sondern eine \fatsf{Verbindungs-ID} oder \fatsf{Circuit ID}. Diese ID ist eine Art temporäre Adresse, die die gesamte Sitzung identifiziert
+        \item Alle Zwischenstationen (Router, Switches) wissen über die Verbindung, da sie während des Verbindungsaufbaus festgelegt wird
+    \end{itemize}
+    \item \fatsf{Datagram (CLNS):}
+    \begin{itemize}
+        \item Hier handelt es sich um ein \fatsf{verbindungsfreies Modell}
+        \item Jede Nachricht (Paket) wird \fatsf{unabhängig} voneinander versendet
+        \item \fatsf{Routing} wird normalerweise \fatsf{nicht bei jeder Ankunft eines Pakets} durchgeführt, da dies eine enorme Rechenlast verursachen würde
+        \item Stattdessen wird das Routing üblicherweise \fatsf{periodisch oder nach einer Netzwerkanpassung} durchgeführt. Das heißt, wenn sich das Netzwerk ändert oder wenn ein Fehler auftritt, wird das Routing neu berechnet und die Routing-Tabellen aktualisiert
+        \item Das Internet verwendet diesen \fatsf{datagrammorientierten Ansatz} (z.B. durch \fatsf{IP-Routing})
+    \end{itemize}
+\end{itemize}
+\fatsf{Unterschiede zwischen network service und transport service (NS vs. TS):}
+\begin{itemize}
+    \item \fatsf{COTS (Connection-Oriented Transport Service):}
+    \begin{itemize}
+        \item Nur die \fatsf{Endsysteme} wissen, dass sie miteinander verbunden sind
+        \item Ein Beispiel dafür ist das \fatsf{TCP} (Transmission Control Protocol). Es stellt sicher, dass die Daten zuverlässig über die Verbindung übertragen werden und dass die Endsysteme über den Status der Verbindung Bescheid wissen
+    \end{itemize}
+    \item \fatsf{CONS (Connection-Oriented Network Service)}:
+    \begin{itemize}
+        \item Alle \fatsf{Zwischenstationen} (Router und Switches) wissen über die Verbindung Bescheid und verwalten die \fatsf{Verbindungs-ID}
+        \item Ein Beispiel ist das \fatsf{ATM (Asynchronous Transfer Mode)} oder \fatsf{Frame Relay}, bei denen eine virtuelle Verbindung zwischen den Endpunkten eingerichtet wird und alle Zwischenstationen (z.B. Router) diese Verbindung kennen
+    \end{itemize}
+\end{itemize}
+\fatsf{Zielkonflikte im Routing}\\
+Routingalgorithmen sollen möglichst viele gute Eigenschaften erfüllen:
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{Eigenschaft} & \fatsf{Bedeutung}\\
+        \midrule
+        Korrektheit & Liefert immer gültige Wege\\
+        Einfachheit & Gut implementierbar, wenig Rechenaufwand\\
+        Robustheit & Funktioniert auch bei Ausfällen\\
+        Stabilität & Keine dauernden Schwankungen\\
+        Fairness & Kein Teilnehmer wird benachteiligt\\
+        Optimalität & Nutzung der Netzressourcen ist effizient\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+Diese Eigenschaften stehen aber oft im Widerspruch. Beispiel:
+\begin{itemize}
+    \item Es wäre optimal, wenn nur $A\rightarrow A'$, $B\rightarrow B'$ und $C\rightarrow C'$ die gesamte Bandbreite einer Leitung nutzen
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Chapter 2_Images/Conflict.jpeg}
+    \end{figure}
+    \item Aber das wäre unfair gegenüber anderen Verbindungen (z.B. $X\rightarrow X'$), die dann keinen Durchsatz bekommen
+\end{itemize}
+\fatsf{Häufig verwendete Metrik: Minimale Hops}\\
+In der Praxis versuchen viele Routingprotokolle einfach die Anzahl der Hops zu minimieren:
+\begin{itemize}
+    \item Das führt oft zu akzeptablen Ergebnissen
+    \item Aber es garantiert nicht immer den optimalen Weg (z.B. im Sinne von Latenz oder Auslastung)
+\end{itemize}
+\subsubsection*{Klassifizierung der Routing-Algorithmen}
+Routing-Algorithmen lassen sich grob in zwei Hauptkategorien einteilen:
+\begin{itemize}
+    \item \fatsf{Nicht-adaptative Routing-Algorithmen:} Diese Algorithmen treffen ihre Entscheidungen ohne Berücksichtigung des aktuellen Netzwerkzustands. Sie basieren auf vordefinierten Routen oder einfach Strategien wie \fatsf{Fluten} oder \fatsf{Pro-Konfiguration}
+    \item \fatsf{Adaptive Routing-Algorithmen:} Diese Algorithmen berücksichtigen den aktuellen Zustand des Netzwerks bei ihren Entscheidungen. Sie reagieren dynamisch auf Änderungen, wie z.B. Netzwerküberlastung oder Ausfälle. Beispiele sind \fatsf{Distance-Vector Routing} oder \fatsf{Link-State Routing}
+\end{itemize}
+\fatsf{Missverständnis über adaptive Routing-Algorithmen}
+\begin{itemize}
+    \item Viele glauben, dass \enquote{adaptive} Routing-Algorithmen die Netzwerklast kontinuierlich anpassen. Dies ist jedoch schwierig und kann sogar zu mehr Problemen führen, weil sich der Netzwerkverkehr schnell ändern kann. Zu viel Traffic zur Anpassung kann das Netzwerk weiter belasten. Ein gutes Beispiel: Wenn eine Leitung überlastet ist, kann sie so behandelt werden, als wäre sie ausgefallen, um den Traffic um die problematische Strecke herumzuleiten
+\end{itemize}
+\subsection{Nicht-adaptive Routing Algorithmen}
+\subsubsection*{Flooding (Fluten)}
+Flooding ist eine einfach, nicht-adaptive Strategie:
+\begin{itemize}
+    \item \fatsf{Funktionsweise:} Jedes eingehende Paket wird an jeden benachbarten Router weitergeleitet, außer dem Router, vor dem es kam, und es wird nicht an das Endziel weitergeleitet, wenn es dieses bereits erreicht hat
+    \item \fatsf{Problem:} Flooding erzeugt viele Duplikate von Pakete, die das Netzwerk stark belasten können
+\end{itemize}
+\fatsf{Lösungen zur Reduzierung von Duplikaten:}
+\begin{enumerate}
+    \item \fatsf{TTL (Time To Live):} Jedes Paket hat eine TTL (Lebensdauer), die von den Routern auf jeder Weiterleitung dekrementiert wird. Wenn die TTL 0 erreicht, wird das Paket verworfen. Die TTL wird idealerweise basierend auf der Entfernung vom Ursprung zum Ziel initialisiert
+    \item \fatsf{Sequenznummern:} Ein Router fügt eine Sequenznummer hinzu, die jedes Paket eindeutig kennzeichnet. Routern wird es dann ermöglicht, Pakete zu erkennen, die sie bereits weitergeleitet haben, und sie zu verwerfen
+\end{enumerate}
+\subsubsection*{Flooding: Mögliche Anwendungen}
+Flooding kann in einigen Szenarien sinnvoll sein, z.B. in dynamischen Netzwerken, wo die Anpassung an Netzwerkverkehr zu langsam oder zu ressourcenintensiv wäre\\
+Beispiele für Anwendungen:
+\begin{itemize}
+    \item \fatsf{Krisensituationen:} Bei Naturkatastrophen oder Ausfällen, wo schnelle Netzwerkverbindungen nötig sind. Hierbei könnte Flooding sicherstellen, dass auch bei Ausfällen von Routern die Daten ihre Zielsysteme erreichen
+    \item \fatsf{Verteilte Datenbanken:} Bei der gleichzeitigen Aktualisierung mehrere Datenbanken könnte Flooding verwendet werden, um eine einzige Nachricht an alle relevanten Systeme zu senden
+    \item \fatsf{Netzwerke mit häufigen Topologieänderungen:} In mobilen Netzwerken (wie Ad-hoc-Netzen oder Peer-to-Peer-Netzen) wird Flooding genutzt, um die Kommunikation zu ermöglichen, auch wenn sich die Netzwerkstruktur ständig verändert
+\end{itemize}
+\subsubsection*{Statisches Routing}
+Statisches Routing ist eine nicht-adaptive Strategie, bei der alle Router mit festen Routen zu allen möglichen Zielen vorab konfiguriert sind
+\begin{itemize}
+    \item \fatsf{Vorteil:} In einem stabilen, vorhersehbaren Netzwerk funktioniert statisches Routing sehr gut, weil es keine komplexen Berechnungen erfordert
+    \item \fatsf{Nachteile:} Bei häufigen Änderungen im Netzwerk (z.B. Routerausfällen, Netzwerkkapazitäten oder Verkehrsschwankungen) ist statisches Routing problematisch. Hier können adaptive Algorithmen besser reagieren und die Routen dynamisch anpassen, um das Netzwerk effizient zu nutzen
+\end{itemize}
+\subsubsection*{Problem mit nicht-adaptiven Algorithmen}
+\begin{itemize}
+    \item Wenn das Netzwerk stark verändert wird oder die Verkehrsmuster schwanken, würde ein nicht-adaptives System enorme Ressourcen wie große Kabel und Router erfordern, um das Netzwerk am Laufen zu halten - was ineffizient ist
+    \item Netzwerklast ist oft \enquote{burstig} - d.h. sie variiert stark im Laufe der Zeit. Im Gegensatz zu physischen Flüssen wie Wasser oder Elektrizität, die automatisch Lasten auf alternativen Pfaden ausgleichen, muss ein Netzwerk aktiv steuern, wie der Traffic verteilt wird
+\end{itemize}
+\subsection{Adaptive Routing Algorithms}
+Adaptive Routing bedeutet, dass Routing-Entscheidungen auf Basis des aktuellen Netzwerkzustands getroffen werden. Es gibt drei Haupttypen:
+\subsubsection*{Centralized Adaptive Routing}
+\fatsf{Zentrale Steuerung durch ein Routing Control Center (RCC)}
+\begin{itemize}
+    \item \fatsf{Funktionsweise:}
+    \begin{itemize}
+        \item Alle Router senden regelmäßig Informationen über ihre Links (z.B. Auslastung, Verzögerung, Verfügbarkeit) an das RCC
+        \item Das RCC konstruiert damit ein vollständiges Netzwerkgraph-Modell
+        \item Es berechnet optimale Routen (z.B. mittels Dijskra-Algorithmus) und sendet die Routen an die einzelnen Router zurück
+    \end{itemize}
+    \item \fatsf{Vorteile:}
+    \begin{itemize}
+        \item Globale Sicht auf das Netzwerk ermöglicht gute Routenentscheidungen
+        \item Einheitliche zentrale Verwaltung vereinfacht bestimmte Aufgaben
+    \end{itemize}
+    \item \fatsf{Nachteile:}
+    \begin{itemize}
+        \item \fatsf{Single Point of Failure:} Fällt das RCC aus, wird das Routing nicht mehr aktualisiert
+        \item \fatsf{Skalierungsprobleme:} Bei großen Netzwerken überfordert die zentrale Instanz
+        \item \fatsf{Verzögerungen:} Nahe Router melden und erhalten Änderungen schneller als entfernte
+        \item \fatsf{Bottleneck-Risiko:} Viel Verkehr konzentriert sich um das RCC
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Isolated (Local) Adaptive Routing}
+\fatsf{Jeder Router trifft Entscheidungen nur auf Basis seiner eigenen Informationen}
+\begin{itemize}
+    \item \fatsf{Eigenschaften:}
+    \begin{itemize}
+        \item Keine Kommunikation mit anderen Routern nötig
+        \item Routenwahl basiert auf lokalen Kriterien (z.B. Queue-Länge an den Ports)
+    \end{itemize}
+    \item \fatsf{Beispiele:}
+    \begin{itemize}
+        \item \fatsf{Hot Potato Routing:}
+        \begin{itemize}
+            \item Ziel: Pakete so schnell wie möglich loswerden, egal in welche Richtung
+            \item Oft wird der Ausgang mit der kürzesten Warteschlange gewählt
+            \item Vorteil: sehr einfach, geringe Verzögerung
+            \item Nachteil: Pakete können ineffizient durch das Netzwerk irren
+        \end{itemize}
+        \item \fatsf{Backward Learning:}
+        \begin{itemize}
+            \item Router lernen aus beobachtetem Verkehr
+            \item Jeder Router merkt sich für jede Quelladresse, von welchem Interface das Paket kam und wie hoch der Hop Count war
+            \item Wenn ein Paket mit niedrigerem Hop Count ankommt $\rightarrow$ bessere Route entdeckt
+        \end{itemize}
+    \end{itemize}
+    \item \fatsf{Vorteil:}
+    \begin{itemize}
+        \item Kein Overhead durch Kommunikation mit anderen Routern
+    \end{itemize}
+    \item \fatsf{Nachteil:}
+    \begin{itemize}
+        \item Potenziell suboptimale oder instabile Routen
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Distributed Adaptive Routing}
+\fatsf{Router tauschen regelmäßig Informationen untereinander aus}
+\begin{itemize}
+    \item \fatsf{Ziel:}
+    \begin{itemize}
+        \item Finden eines \enquote{guten} Pfads (z.B. mit minimalem Hop Count oder minimaler Verzögerung) vom Sender zum Empfänger
+    \end{itemize}
+    \item \fatsf{Graph-Modell:}
+    \begin{itemize}
+        \item Router = Knoten im Graphen
+        \item Links (Hops) = Kanten mit bestimmten Kosten (z.B. Verzögerung, Auslastung, Bandbreite)
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\linewidth]{Chapter 2_Images/Routing Protocol.jpeg}
+    \end{figure}
+    \item \fatsf{Klassifizierung:}
+    \begin{itemize}
+        \item \fatsf{Distance Vector Routing} (z.B. RIP, BGP):
+        \begin{itemize}
+            \item Jeder Router kennt nur seine Nachbarn
+            \item Router tauschen regelmäßig Vektoren mit Distanzen zu Zielen aus
+            \item Iterativer Prozess: Jeder Router aktualisiert seine Tabelle basierend auf den Nachbarn
+        \end{itemize}
+        \item \fatsf{Link State Routing} (z.B. OSPF):
+        \begin{itemize}
+            \item Jeder Router sammelt vollständige Topologie-Informationen
+            \item Broadcastet diese Informationen an alle Router
+            \item Jeder Router berechnet lokal den optimalen Pfad (z.B. via Dijkstra)
+        \end{itemize}
+        \item \fatsf{Statisch vs. Dynamisch:}
+        \begin{itemize}
+            \item \fatsf{Statisch:} Routen ändern sich selten
+            \item \fatsf{Dynamisch:} Routen passen sich regelmäßig an (z.B. bei Änderung der Linkkosten)
+        \end{itemize}
+        \item \fatsf{Vorteile:}
+        \begin{itemize}
+            \item Flexibel, reagiert auf Netzwerkänderungen
+            \item Kann Last balancieren, Überlastungen vermeiden
+        \end{itemize}
+        \item \fatsf{Nachteile:}
+        \begin{itemize}
+            \item Mehr Overhead durch Informationsaustausch
+            \item Potenziell instabile Routen bei schneller Änderung der Bedingungen (z.B. Routing Loops, Count-to-Infinity Problem bei Distance Vector)
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\clearpage
+\subsection{Distance Vector Routing (DVR)}
+\subsubsection*{Grundprinzip}
+\begin{itemize}
+    \item Jeder Router kennt nur die \fatsf{Kosten zu seinen direkten Nachbarn}
+    \item Jeder Router erstellt und pflegt eine \fatsf{Distance Table}, in der für jede Destination und jeden Nachbarn die Gesamtkosten vermerkt sind
+    \item \fatsf{Distance Vector} = für jeden Zielknoten: aktuell geringste bekannte Kosten
+    \item Durch den Austausch dieser Distance Vectors mit Nachbarn werden die Routen iterativ verbessert
+\end{itemize}
+\subsubsection*{Distance Table}
+\begin{itemize}
+    \item Eintrag $D_{X}(Y,Z)$: Kosten von Router X zu Ziel Y über Nachbarn Z:
+    \[
+        D^{X}(Y,Z) = c(X,Z) + min_{w}\{D^{Z}(Y,W)\}
+    \]
+    \item Ziel: Für jedes Ziel Y die Route mit minimalen Kosten (über irgendeinen Nachbarn Z) zu finden
+\end{itemize}
+\fatsf{Example for Distance Table:}\\
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Chapter 2_Images/Example for Distance Table.jpeg}
+\end{figure}
+\clearpage
+\subsubsection*{Derive Routing Table from Distance Table}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Chapter 2_Images/Derive Routing Table from Distance Table.jpeg}
+\end{figure}
+\clearpage
+\subsubsection*{Example: Initialization of Distance Tables}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.65\linewidth]{Chapter 2_Images/Initialization of Distance Tables.jpeg}
+\end{figure}
+\subsubsection*{Example: Distance Vector Algorithm}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Chapter 2_Images/Example: distance vector algorithm.jpeg}
+\end{figure}
+\clearpage
+\subsubsection*{DVR: Reaction to Link Cost Changes}
+\begin{itemize}
+    \item \fatsf{Gute Nachrichten (niedrige Kosten)} verbreiten sich schnell: neue Pfade werden schnell übernommen
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.72\linewidth]{Chapter 2_Images/Reaction to Link Cost Changes 1.jpeg}
+    \end{figure}
+    \item \fatsf{Schlechte Nachrichten (höhere Kosten)} $\rightarrow$ \enquote{Count-to-Infinity}-Problem:
+    \begin{itemize}
+        \item Schlechte Routen werden langsamer verbreitet
+        \item Kann zu \fatsf{Routing Loops} führen
+        \item Lösungsmöglichkeiten: Split Horizon, Poison Reverse, Triggered Updates
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.73\linewidth]{Chapter 2_Images/Reaction to Link Cost Changes 2.jpeg}
+    \end{figure}
+\end{itemize}
+\subsubsection*{Was ist das Count-to-Infinity-Problem?}
+Beim Distance Vector Routing kann es passieren, dass sich zwei oder mehr Knoten gegenseitig falsche Informationen schicken - z.B. wenn eine Verbindung ausfällt. Dadurch \enquote{glauben} sie, es gäbe noch einen Pfad, obwohl es keinen mehr gibt. Ihre Schätzungen für die Distanz steigen dann schrittweise $\rightarrow$ theoretisch bis $\infty$
+\subsubsection*{DVR - Poisoned Reverse}
+Technik zur Bekämpfung von Count-to-Infinity:\\
+Wenn ein Knoten Z über seinen Nachbarn Y zu einem Ziel X routet, dann teilt er Y absichtlich mit:\\
+$\rightarrow$ \enquote{Meine Distanz zu X ist $\infty$}\\
+So verhindert Z, dass Y wiederum zu X über Z routet (was zu einer Schleife führen würde)\\
+Beispiel:
+\begin{itemize}
+    \item X -- Y -- Z
+    \item Angenommen, der Pfad $Z \rightarrow X$ ist über Y
+    \item Dann teilt Z Y mit: $D^{Z}(X) = \infty$
+\end{itemize}
+$\rightarrow$ Dadurch weiß Y: \enquote{ich sollte nicht zu X über Z gehen}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Chapter 2_Images/Poisoned Reverse.jpeg}
+\end{figure}
+\subsubsection*{Warum funktioniert Poisoned Reverse nicht immer?}
+In kleinen Netzen funktioniert es meist. Aber in größeren Netzen können mehrere Router sich gegenseitig \enquote{vergiften}, ohne dass ein echter Alternativpfad existiert\\
+Poisoned Reverse verhindert Routing-Schleifen, aber nur zwischen zwei direkt verbundenen Routern. Es funktioniert nicht mehr zuverlässig, wenn das Netz mehr als zwei Hops umfasst und mehrere Router beteiligt sind, die sich gegenseitig beeinflussen können - ohne direkte Verbindung zueinander
+Beispiel:\\
+Netzwerk: A -- B -- C -- D\\
+\begin{itemize}
+    \item Jeder Link hat Kosten 1
+    \item Alle Router kennen anfangs di besten Wege zu allen Zielen
+\end{itemize}
+\fatsf{Schritt-für-Schritt - der Fehlerfall:}
+\begin{enumerate}
+    \item \fatsf{Link C-D fällt aus} (z.B. C erkennt: D nicht erreichbar)
+    \item C entfernt D aus seiner Routingtabelle
+    \item C sagt \fatsf{B}, dass D nicht mehr erreichbar ist
+    \item \fatsf{ABER}: B hat noch \fatsf{veraltete Information} - B glaubt, D sein über C erreichbar (Kosten 2)
+    \begin{itemize}
+        \item B hat vielleicht noch nicht das neue Update von C bekommen
+        \item Oder: B erhält das Update von C, aber \fatsf{sieht gleichzeitig}, dass \fatsf{A} noch sagt: \enquote{Ich erreiche D über B mit Kosten 3}
+        \item B denkt: \enquote{Wenn A einen Weg zu D kennt (über mich), dann kenne ich auch einen Weg - über A}\\
+        $\rightarrow$ Das ist der Trugschluss
+    \end{itemize}
+    \item B meldet \fatsf{A}, dass D über B erreichbar ist
+    \item A sagt: \enquote{Ah, D über B - gut!} und merkt sich D über B mit Kosten 3
+    \item Jetzt sagt A zu B: \enquote{Ich kenne einen Weg zu D über dich - kostet 3}
+    \item B denkt nun: \enquote{A kennt D - dann kenne ich D über A - mit Kosten 4}
+    \item usw.
+\end{enumerate}
+\subsubsection*{DVR - Split Horizon}
+Verwandte Technik:
+\begin{itemize}
+    \item Ein Knoten teilt einem Nachbarn \fatsf{gar nicht} mit, welche Routen er \fatsf{über genau diesen Nachbarn} gelernt hat
+\end{itemize}
+Beispiel:
+\begin{itemize}
+    \item X lernt Route zu Z über Y
+    \item Dann sagt X dem Y \fatsf{nichts} über Route zu Z
+\end{itemize}
+$\rightarrow$ Ziel: Y soll X nicht als Rückweg zu Z in Betracht ziehen
+\subsection{Link-State Routing (LSR)}
+Link-State Routing (LSR) ist ein Routing-Algorithmus, bei dem jeder Knoten im Netzwerk die vollständige Topologie kennt - im Gegensatz zu Distance Vector Routing (DVR), bei dem Knoten nur Infos über ihre Nachbarn haben
+\subsubsection*{Grundidee von Link State Routing}
+Jeder Knoten führt folgende Schritte aus:
+\begin{enumerate}
+    \item \fatsf{Link-State Erkennung:}\\
+    Er misst die Kosten zu seinen direkten Nachbarn (z.B. Latenz, Brandbreite, Anzahl Hops)
+    \item \fatsf{Link-State-Verteilung (Flooding):}\\
+    Er verschickt sogenannte \fatsf{Link-State-Pakete (LSPs)} mit Infos über alle seine direkten Verbindungen an alle anderen Router im Netz
+    \item \fatsf{Topologie-Rekonstruktion:}\\
+    Jeder Router speichert alle empfangenen LSPs $\rightarrow$ damit kann er das gesamte Netzwerk als Graph rekonstruieren
+    \item \fatsf{Kürzeste-Wege-Berechnung (Dijkstra):}\\
+    Mit Dijkstra's Algorithmus berechnet der Router den kürzesten Pfad zu jedem anderen Knoten
+    \item \fatsf{Routing-Tabelle-aktualisieren:}\\
+    Er erzeugt daraus die Tabelle, die bestimmt, welchen Ausgangsport (next hop) er für jedes Ziel verwenden soll
+\end{enumerate}
+\subsubsection*{Vergleich DVR vs. LSR}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lll}
+        \toprule
+        \fatsf{Eigenschaft} & \fatsf{Distance Vector (DVR)} & \fatsf{Link-State Routing (LSR) - Dijkstra}\\
+        \midrule
+        Prinzip & Iterative, verteilt & Global, zentralisiertes Wissen\\
+        Infoverteilung & Nur zwischen Nachbarn & Link-State-Pakete werden geflutet\\
+        Routingfehler & Count-to-Infinity möglich & Weniger Fehleranfällig\\
+        Schleifen & Möglich & Sehr unwahrscheinlich\\
+        Algorithmen & Bellman-Ford & Dijkstra\\
+        Konvergenz & Langsam, kann oszillieren & Schnell, O($n^2$)\\
+        Robustheit & Fehler in Nachbarn beeinflussen viele Knoten & Fehler beschränkt auf falsche Link-State-Infos\\
+        Nachrichtenkomplexität & Geringer (aber bei Fehlern evtl. viele Iterationen) & Höher (wegen Flooding), aber deterministisch\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsection{Hierarchical Routing}
+\fatsf{Motivation für Hierarchical Routing}
+\begin{itemize}
+    \item \fatsf{Bisherige Annahmen (idealisiert):}
+    \begin{itemize}
+        \item Alle Router sind gleich
+        \item Das Netzwerk ist \enquote{flach}: alle Router kennen sich
+    \end{itemize}
+    \item \fatsf{In der Praxis jedoch:}
+    \begin{itemize}
+        \item Das Internet ist riesig: Milliarden von Zielen
+        \item Jeder Router kann nicht alle Ziele kennen
+        \item Routing-Updates zwischen allen Routern wäre zu viel Traffic
+        \item Verschiedene Betreiber (Provider, Firmen) wollen Kontrolle über ihr Routing behalten
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Autonomous Systems (AS)}
+Ein Autonomous System (AS) ist:
+\begin{itemize}
+    \item Eine Sammlung von Routern unter gemeinsamer administrativer Kontrolle
+    \item Im Internet bestehen ca. 120000 AS (Stand 2025)
+    \item Es gibt drei Typen:
+    \begin{itemize}
+        \item \fatsf{Stub AS:} Nur ein Verbindungsweg ins Internet (z.B. kleine Firma, Uni mit einem einzigen ISP)
+        \begin{itemize}
+            \item Verbindet sich nur mit einem anderen AS
+            \item Verwendet BGP nur für eingehenden und ausgehenden Verkehr
+            \item Leitet keinen Transitverkehr für andere AS weiter
+            \item Einfachste Art von AS
+        \end{itemize}
+        \item \fatsf{Multihomed AS:} Mehrere Internetverbindungen, aber leitet keinen Transitverkehr weiter (z.B. Firma mit zwei ISPs für Redundanz)
+        \begin{itemize}
+            \item Hat Verbindungen zu mehreren AS, z.B. zu mehreren ISPs
+            \item Verwendet BGP, um Verfügbarkeit zu erhöhen (Redundanz, Ausfallsicherheit)
+            \item Leitet jedoch keinen Verkehr weiter, der nicht für es selbst bestimmt ist
+            \item Nimmt am BGP teil, filtert aber Transitverkehr
+        \end{itemize}
+        \item \fatsf{Transit AS:} Internetanbieter, leitet Datenverkehr für andere AS weiter (Internet Service Provider z.B. Telekom)
+        \begin{itemize}
+            \item Verbindet sich mit mehreren AS
+            \item Leitet Verkehr weiter, auch wenn der Verkehr nicht für das eigene Netz bestimmt ist
+            \item Bietet Transitdienste an $\rightarrow$ andere AS bezahlen dafür
+            \item Dies sind oft Backbone-Provider oder große ISPs
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+Jedes AS hat:
+\begin{itemize}
+    \item Eine eindeutige Nummer (ASN)
+    \item Interne Routingregeln
+    \item Einen oder mehrere Gateways zu anderen AS
+\end{itemize}
+\subsubsection*{Zwei Ebenen im Routing}
+\begin{enumerate}
+    \item \fatsf{Intra-AS-Routing (innerhalb eines AS):}
+    \begin{itemize}
+        \item Wird vom AS selbst kontrolliert
+        \item Protokolle: RIP, OSPF, IGRP
+        \item Ziele: Effizienz, schnelle Konvergenz
+    \end{itemize}
+    \item \fatsf{Inter-AS-Routing (zwischen AS):}
+    \begin{itemize}
+        \item Globaler Standard: Border Gateway Protocol (BGP)
+        \item Enthält Pfadinformation zur Vermeidung von Loops
+        \item Berücksichtigt auch Richtlinien (\enquote{Policy Routing})
+    \end{itemize}
+\end{enumerate}
+\subsubsection*{Gateway-Router}
+\begin{itemize}
+    \item Sind die Brücken zwischen AS
+    \item Sie führen sowohl Intra-AS als auch Inter-AS-Routing durch
+    \item Empfangen Informationen über Erreichbarkeit von Subnetzen und geben diese an interne Router weiter
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Chapter 2_Images/Inter-AS and Intra-AS Routing.jpeg}
+\end{figure}
+\subsubsection*{Interconnected Autonomous Systems}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 2_Images/Interconnected Autonomous Systems.jpeg}
+\end{figure}
+\subsubsection*{Beispiel: Routing über mehrere AS}
+\begin{enumerate}
+    \item \fatsf{AS1} erfährt über BGP, dass Subnetz x über \fatsf{AS2} und \fatsf{AS3} erreichbar ist
+    \item \fatsf{Router 1d} in AS1 wählt den nächstgelegenen Gateway (z.B.1c für AS3)
+    \item \fatsf{Hot Potato Routing:} Paket wird so schnell wie möglich an externes AS weitergegeben - unabhängig davon, ob das dann optimal ist
+\end{enumerate}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 2_Images/AS.jpeg}
+\end{figure}
+\subsubsection*{Warum Trennung in Inter- und Intra-AS?}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lll}
+        \toprule
+        \fatsf{Aspekt} & \fatsf{Inter-AS} & \fatsf{Intra-AS}\\
+        \midrule
+        Skalierung & Aggregation reduziert Tabellen & Vollständige Info über AS\\
+        Kontrolle & Richtlinien wichtig (Policies) & Ein Admin, keine Richtlinien\\
+        Performance & Zweitrangig (Policy dominiert) & Priorität auf Performance\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsection{Reflektionen über Internet-Routing}
+\subsubsection*{RIP, OSPF und BGP im Überblick}
+\begin{tabularx}{\textwidth}{|>{\bfseries}l|l|l|X|}
+    \hline
+    Protokoll & Typ & Einsatz & Eigenschaften \\
+    \hline
+    RIP (1983) & Distance Vector & Intra-AS & 
+    Metrik = Hop Count \newline 
+    Einfach, aber ineffizient bei großen Netzen \newline 
+    Verwendet „Poison Reverse“ zur Loop-Vermeidung \\
+    \hline
+    OSPF & Link State & Intra-AS & 
+    Öffentlich verfügbar \newline 
+    Nutzt TCP zur zuverlässigen Übertragung \newline 
+    Zwei Metriken: Best Effort \& Realtime \newline 
+    Multicast-fähig \\
+    \hline
+    BGP & Path Vector & Inter-AS & 
+    De-facto Standard für Inter-Domain-Routing \newline 
+    Unterstützt Policies \newline 
+    Arbeitet über dauerhafte TCP-Sessions \\
+    \hline
+\end{tabularx}
+\subsubsection*{BGP-Grundlagen}
+\begin{itemize}
+    \item \fatsf{BGP (Border Gateway Protocol)} ermöglicht:
+    \begin{itemize}
+        \item Erhalt und Weitergabe von Erreichbarkeitsinformationen (Prefixe) zwischen AS
+        \item Auswahl \enquote{guter} Routen auf Basis von Policy und Pfadinformation
+    \end{itemize}
+    \item Prefixe (z.B. Subnetze) werden angekündigt: \enquote{Ich bin erreichbar}
+    \item Routerpaaren (BGP-Peers) tauschen Routinginformationen über \fatsf{BGP-Sessions} (TCP) aus
+    \item \fatsf{Wichtig:} BGP-Sessions $\neq$ physikalische Links
+\end{itemize}
+\subsubsection*{BGP-Session Arten}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{Art} & \fatsf{Beschreibung}\\
+        \midrule
+        \fatsf{eBGP} (external BGP) & Zwischen zwei verschiedenen AS\\
+        \fatsf{iBGP} (internal BGP) & Innerhalb eines AS zwischen den Routern \\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Verteilung von Reachability Information}
+\begin{enumerate}
+    \item AS3 sendet über \fatsf{eBGP} Prefixe an AS1
+    \item Router 1c leitet Info per \fatsf{iBGP} an andere AS1-Router (z.B. 1d)
+    \item Router 1b kann neue Info an AS2 (z.B. Router 2a) weitergeben
+    \item Für jedes neue Prefix wird ein neuer Eintrag in die Forwarding Table aufgenommen
+\end{enumerate}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Chapter 2_Images/BGP Basics.jpeg}
+\end{figure}
+\subsubsection*{BGP-Attribute = Pfadinformation + Richtlinien}
+\begin{itemize}
+    \item \fatsf{AS-PATH:} Liste durchlaufener AS (z.B. \enquote{AS67 AS17})
+    \item \fatsf{NEXT-HOP:} Gibt den nächsten Router in Richtung des beworbenen Prefixes an
+    \item Wird verwendet, um Loops zu vermeiden und Routingentscheidungen zu treffen
+\end{itemize}
+\subsubsection*{BGP-Routing-Policies}
+Routingentscheidungen basieren oft auf Geschäftsbeziehungen, nicht auf kürzester Router:
+\begin{itemize}
+    \item \fatsf{Provider-Kunde-Beziehung:}
+    \begin{itemize}
+        \item Provider leitet Verkehr \fatsf{von} und \fatsf{zu} seinen Kunden weiter
+        \item Nicht erlaubt: Weiterleitung \fatsf{zwischen} anderen Providern (kein Transit ohne Vertrag)
+    \end{itemize}
+\end{itemize}
+\fatsf{Beispiel:}
+\begin{itemize}
+    \item X ist Kunde von A und B (dual-homed)
+    \item X möchte nicht als Transit zwischen B und C fungieren
+    \item B sollte daher Route \enquote{$C \rightarrow B \rightarrow A \rightarrow W$} \fatsf{nicht} weitergeben
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Chapter 2_Images/BGP Routing Policy.jpeg}
+\end{figure}
+\subsubsection*{Skalierungsprobleme}
+\begin{itemize}
+    \item BGP skaliert gut durch AS-Trennung, \fatsf{aber:}
+    \begin{itemize}
+        \item iBGP erfordert \fatsf{vollständige Mesh} unter Routern
+        \item Mehr AS = größere Routingtabellen = langsamere Konvergenz
+        \item Änderungen in einem AS können viele andere AS indirekt beeinflussen
+    \end{itemize}
+\end{itemize}
+\subsubsection*{BGP-Probleme \& Risiken}
+\begin{tabularx}{\textwidth}{|>{\bfseries}l|X|}
+    \hline
+    \fatsf{Kategorie} & \fatsf{Beispielprobleme} \\
+    \hline
+    \fatsf{Routinprobleme} & - Suboptimale Pfade \newline 
+    - Instabile Routen \newline 
+    - Route Flapping \\
+    \hline
+    \fatsf{Sicherheit} & - Blackholing \newline 
+    - Traffic Hijacking \newline 
+    - Fehlgeleitete Datenströme durch falsche Ankündigungen \\
+    \hline
+\end{tabularx}
+\subsection{Mobile Routing - Herausforderungen \& Lösungen}
+\subsubsection*{Herausforderungen beim Routing in mobilen Netzen}
+\begin{itemize}
+    \item \fatsf{Mobilität:} Netzwerkknoten bewegen sich $\rightarrow$ Topologie ändert sich häufig
+    \item \fatsf{Probleme:}
+    \begin{itemize}
+        \item Veraletete Routing-Informationen
+        \item Hohe Routing-Overhead bei klassischen Protokollen (z.B. OSPF, RIP)
+        \item Latenz durch ständige Pfadanpassung
+    \end{itemize}
+    \item \fatsf{Frage:} Können klassische Routing-Algorithmen verwendet werden?
+    \begin{itemize}
+        \item Eher \fatsf{nein}, da sie auf statischen Topologien und periodischen Updates beruhen
+    \end{itemize}
+    \item \fatsf{Lösungsansatz:} Neue, \fatsf{reaktive} Routing-Protokolle wie DSR
+\end{itemize}
+\subsubsection*{Dynamic Source Routing (DSR)}
+\fatsf{Grundprinzipien von DSR:}
+\begin{itemize}
+    \item \fatsf{Reaktiv statt proaktiv:}
+    \begin{itemize}
+        \item Kein periodisches Austauschen von Routeninformationen
+        \item Routing erfolgt \fatsf{on-demand}
+    \end{itemize}
+    \item \fatsf{Zwei Hauptphasen:}
+    \begin{enumerate}
+        \item \fatsf{Pfadfindung (Path Discovery)}
+        \item \fatsf{Pfadpflege (Path Maintenance)}
+    \end{enumerate}
+    \item \fatsf{RFC 4728} (IETF-Standard)
+\end{itemize}
+\fatsf{Source Routing:}
+\begin{itemize}
+    \item Der \fatsf{Sender} legt den gesamten Pfad im Paket-Header fest
+    \item Jedes Paket trägt den vollständigen Routenverlauf
+\end{itemize}
+\subsubsection*{Path Discovery}
+\begin{itemize}
+    \item Wird \fatsf{nur bei Bedarf} gestartet
+    \item Verwendet \fatsf{Flooding:} Broadcast mit Zieladresse und eindeutiger ID
+    \item Empfänger überprüft:
+    \begin{itemize}
+        \item Schon gesehen? $\rightarrow$ Verwerfen
+        \item Ziel erreicht? $\rightarrow$ Pfad rücksenden
+        \item Sonst: Adresse anhängen und weiter broadcasten
+    \end{itemize}
+    \item \fatsf{Assumption:} Netzwerk ist wenigstens temporär verbunden
+    \item Pfad wird im Rückpaket an den Sender übermittelt
+    \item \fatsf{Problem:} Kein garantiert bidirektionaler Pfad $\rightarrow$ Rückweg evtl. ebenfalls flooden
+\end{itemize}
+\subsubsection*{Path Maintenance}
+\begin{itemize}
+    \item Nur für \fatsf{genutzte Pfade}
+    \item \fatsf{Ziel:} Sicherstellen, dass Pfad weiter funktioniert
+    \item \fatsf{Möglichkeiten zur Fehlererkennung:}
+    \begin{itemize}
+        \item Layer 2 Acknowledgement (z.B. in WLANs)
+        \item Mithören von Weiterleitungen (sofern möglich)
+        \item Aktives Anfordern von ACK
+    \end{itemize}
+    \item \fatsf{Bei Problemen:}
+    \begin{itemize}
+        \item Fehler an Sender melden oder 
+        \item neuen Pfad vom aktuellen Zwischenknoten aus suchen
+    \end{itemize}
+\end{itemize}
+\subsection{Overlay Routing}
+\subsubsection*{Was ist Overlay Routing?}
+\begin{itemize}
+    \item Dritte große Routing-Variante neben Distance Vector \& Link State
+    \item Ein \fatsf{Overlay-Network} ist ein \fatsf{virtuelles Netz}, das auf einem realen Netzwerk aufgesetzt ist
+    \begin{itemize}
+        \item Knoten sind logisch verbunden, aber nicht unbedingt physikalisch
+    \end{itemize}
+    \item Typische Beispiele:
+    \begin{itemize}
+        \item Peer-to-Peer-Netzwerke (Gnutella, BitTorrent)
+        \item Cloud/Datacenter-Systeme (z.B. Memcached, CamCubeOS)
+        \item IP selbst ist ein Overly über physischen Netzwerken
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Eigenschaften von Overlay-Netzen}
+\begin{itemize}
+    \item \fatsf{Overlay-Link $\neq$ IP-Link:} Logische Nachbarn müssen nicht direkt verbunden sein
+    \item \fatsf{Beispiel-Schichten:}
+    \begin{enumerate}
+        \item Physikalische Netzwerke (Kabel, Glasfaser)
+        \item IP über Physik
+        \item Overlay (z.B. P2P) über IP
+        \item Anwendung über Overlay
+    \end{enumerate}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 2_Images/Overlay Network.jpeg}
+\end{figure}
+\subsubsection*{Routing in Overlay-Netzen}
+\begin{itemize}
+    \item Grundsätzlich: \fatsf{gleiche Routing-Algorithmen} wie in IP (z.B. Dijkstra, Bellman-Ford)
+    \item Aber zwei wichtige \fatsf{Metriken:}
+    \begin{enumerate}
+        \item \fatsf{Overlay-Hop-Count} - Zahl der Overlay-Knoten auf dem Weg
+        \item \fatsf{Stretch} - Verhältnis von Overlay-Pfadlänge zur optimalen IP-Pfadlänge\\
+        $\Rightarrow$ Ziel: Stretch minimieren
+    \end{enumerate}
+\end{itemize}
+\fatsf{Beispiel:}
+\begin{itemize}
+    \item Overlay-Pfad: $A \rightarrow C \rightarrow D \rightarrow B$ (jeweils 3, 3, 4 IP-Hops $\rightarrow$ total 10)
+    \item Direkter IP-Pfad $A \rightarrow B$ = 5 IP-Hops\\
+    $\rightarrow$ Stretch = 10/5 = \fatsf{2}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 2_Images/Overlay Routing.jpeg}
+\end{figure}
+\subsubsection*{Strategien für Overlay Routing}
+\fatsf{Herausforderungen:}
+\begin{itemize}
+    \item Ressourcen/Nutzer unbekannt
+    \item Knotenverfügbarkeit schwankt (Churn)
+    \item Ressourcen sind verteilt
+\end{itemize}
+\fatsf{Lösungsstrategien:}
+\begin{enumerate}
+    \item \fatsf{Organisation:}
+    \begin{itemize}
+        \item Flat/random (z.B. Gnutella)
+        \item Hierarchisch
+        \item Strukturiert (z.B. DHTs mit Schlüssel-Raum)
+    \end{itemize}
+    \item \fatsf{Delegationstyp:}
+    \begin{itemize}
+        \item Rekursiv: Weiterleitung durch Overlay-Knoten
+        \item Iterativ: Sender fragt alle selbst ab
+    \end{itemize}
+\end{enumerate}
+\fatsf{Beispiele:}
+\begin{itemize}
+    \item Gnutella, eMule, BitTorrent (P2P-Dateitausch)
+    \item Memcached (verteilte Datenbank-Caches)
+    \item CamCube OS (Microsoft, 3D-Torus-Strukturen)
+\end{itemize}

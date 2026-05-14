@@ -1,0 +1,729 @@
+\section{A Quick Tour through Networking}
+\subsection{Distributed Systems (DS)}
+\subsubsection*{Definition}
+\fatsf{Ein verteiltes System ist ein Zusammenschluss mehrere Computer,} die über ein Netzwerk miteinander verbunden sind und \fatsf{als ein einziges System} erscheinen und arbeiten
+\subsubsection*{Zitat zur Veranschaulichung}
+\fatsf{Laslie Lamport:} \enquote{Ein verteiltes System ist eines, bei dem der Ausfall eines Computers, von dessen Existenz man nicht einmal wusste, den eigenen Computer unbenutzbar machen kann}\\
+Das zeigt: \fatsf{Ein Fehler irgendwo kann das ganze System betreffen}
+\subsubsection*{Eigenschaften eines verteilten Systems}
+\begin{itemize}
+    \item Besteht aus \fatsf{mehreren Computern} (oft heterogen)
+    \item Verbindet diese über ein \fatsf{Computernetzwerk}
+    \item Die Computer \fatsf{kooperieren eng}, um \fatsf{gemeinsam eine Aufgabe oder einen Dienst zu erfüllen}
+    \item Das System funktioniert \fatsf{nur über das Netzwerk}
+    \item Das System wirkt \fatsf{nach außen wie ein einziges} (\enquote{System of systems})
+\end{itemize}
+\subsubsection*{Herausforderungen/Probleme}
+\begin{itemize}
+    \item Verzögerungen im Netzwerk (Latenz)
+    \item Ausfall einzelner Komponenten
+    \item Datenkonsistenz und Synchronisation
+    \item Fehlende zentrale Kontrolle
+\end{itemize}
+\subsubsection*{Beispiel für verteilte Systeme}
+\begin{itemize}
+    \item \fatsf{Internet}
+    \item \fatsf{IPTV} (Fernsehen über Internet)
+    \item \fatsf{VoIP} (z.B. Skype, Zoom)
+    \item \fatsf{Peer-to-Peer Netzwerke} (z.B. BitTorrent)
+    \item \fatsf{Online-Spiele}
+    \item \fatsf{Metaverse / Virtuelle Welten}
+\end{itemize} 
+\subsubsection*{Merksatz}
+\enquote{Kein verteiltes System ohne Computernetzwerk}
+\subsection{Netzwerke im Überblick}
+\subsubsection*{Allgemeines}
+\begin{itemize}
+    \item Netzwerke sind ein \fatsf{junges, schnell wachsendes Fachgebiet}
+    \item Gleichzeitig aber auch alltäglich geworden: eine \fatsf{\enquote{Commodity} bzw. \enquote{Utility}} (wie Strom oder Wasser)
+\end{itemize}
+\subsubsection*{Ständige Veränderung (Constant Flux)}
+\begin{itemize}
+    \item \fatsf{Rasante technologische Entwicklung:}
+    \begin{itemize}
+        \item \fatsf{Kehrnetzwerke:} Von T1 (1,544 Mbps) $\rightarrow$ zu 100-Gbps-Switches (und mehr)
+        \item \fatsf{Heimanwender:} 1,2 kbps Modem $\rightarrow$ ADSL2 + (24 Mbps) $\rightarrow$ VDSL2-VPlus (300 Mbps) $\rightarrow$ Glasfaser (n x 1 Gbps)
+    \end{itemize}
+    \item \fatsf{Wandel in der Infrastruktur und Kommunikation:}
+    \begin{itemize}
+        \item Geräte: Workstations $\rightarrow$ PCs $\rightarrow$ Smartphones $\rightarrow$ Sensoren $\rightarrow$ Kommunikation \& Messung kombiniert
+        \item Betriebssysteme: Unix $\rightarrow$ Linux/BSD $\rightarrow$ Windows, macOS $\rightarrow$ iOS, Android, TinyOS $\rightarrow$ \fatsf{Jedes Gerät hat heute ein OS}
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Vergleich: Programmiersprachen vs. Netzwerktechnik}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lll}
+        \toprule
+        \fatsf{Bereich} & \fatsf{Programmiersprachen} & \fatsf{Netzwerke / Verteilte Systeme (CN \& DS)} \\
+        \midrule
+        Theorie & Klar definierte Grundlage & Viele verschiedene Modelle\\
+        Struktur & Gut organisierte Forschung & Forschung eher unstrukturiert\\
+        Reife & Mehrere Phasen der Reifung durchlaufen & Teilweise noch in den Kinderschuhen?\\
+        Realität & Softwarequalität oft sehr schlecht & Große funktionierende Systeme existieren\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+\subsubsection*{Merksätze}
+\begin{itemize}
+    \item \enquote{Networking ist jung, aber überall}
+    \item \enquote{Netze verändern sich ständig - Geräte, Dienste, Kommunikation, Betriebssysteme}
+\end{itemize}
+\clearpage
+\subsection{Kommunikation zwischen zwei Geräte}
+\subsubsection*{Beispiel 1: World Wide Web}
+Was passiert, wenn du \texttt{www.tu-darmstadt.de} in die Adresszeile eingibst und Enter drückst?
+\begin{enumerate}
+    \item \fatsf{Namensauflösung (DNS):} Domainname $\rightarrow$ IP-Adresse
+    \item \fatsf{Verbindungsaufbau:} z.B. über TCP
+    \item \fatsf{Anfrage (Request):} Browser sendet HTTP-Request
+    \item \fatsf{Antwort (Response):} Webserver liefert die Webseite zurück
+    \item \fatsf{Darstellung:} Browser zeigt die Seite an
+\end{enumerate}
+$\rightarrow$ \fatsf{Übertragung einer Datei oder von Datenpaketen}
+\subsubsection*{Beispiel 2: Telefonanruf}
+\fatsf{Was passiert, wenn du jemanden anrufst?}
+\begin{enumerate}
+    \item \fatsf{Teilnehmernummer finden \& Verbindungsaufbau}
+    \item \fatsf{Sprachdaten in Echtzeit übertragen} (z.B. über VoIP oder klassische Telefonleitung)
+    \item \fatsf{Beidseitiger, synchroner Austausch}
+\end{enumerate}
+$\rightarrow$ \fatsf{Kontinuierlicher Informationsfluss - muss rechtzeitig ankommen!}
+\subsubsection*{Vergleich Webseite vs. Telefonat}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lll}
+        \toprule
+        \fatsf{Merkmal} & \fatsf{Webseite (HTTP)} & \fatsf{Telefonat (VoIP / klassisch)}\\
+        \midrule
+        Datenart & \fatsf{Statische Datenmenge} (z.B. HTML-Datei) & \fatsf{Kontinuierlicher Strom} (Sprache)\\
+        Zeitkritisch? & Nein (Daten können gepuffert werden) & Ja (muss in \fatsf{Echtzeit} ankommen)\\
+        Interaktivität & Einseitig oder zeitverzögert & Echtzeit, \fatsf{bidirektional}\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+\subsubsection*{Was ist eigentlich \enquote{Daten} und \enquote{Information}?}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{Begriff} & \fatsf{Erklärung}\\
+        \midrule
+        \fatsf{Daten} & Rohwerte, z.B. Zahlen, Zeichen - ohne Kontext noch bedeutungslos\\
+        \fatsf{Information} & Wenn Daten in einem Kontext \fatsf{interpretiert und verstanden} werden\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+Beispiel:
+\begin{itemize}
+    \item \enquote{42} = \fatsf{Daten}
+    \item \enquote{42 Grad Celsius Körpertemperatur} = \fatsf{Information}
+\end{itemize}
+\subsubsection*{Einfachste Kommunikation: Direkte physikalische Verbindung}
+\fatsf{Beispiele:}
+\begin{itemize}
+    \item \fatsf{WWW:} Client (Browser) direkt per Kabel mit Server verbunden
+    \begin{itemize}
+        \item Client sendet Anfrage, Server liefert Daten
+    \end{itemize}
+    \item \fatsf{Telefonie:} Zwei Telefone direkt per Kabel verbunden
+\end{itemize}
+\subsubsection*{Wichtige Begriffe: Information - Daten - Signale}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{Abstrakte Ebene} & \fatsf{Reale Umsetzung}\\
+        \midrule
+        \fatsf{Information} & Bedeutung, Inhalt\\
+        \fatsf{Daten} & Darstellung der Information (z.B. als Bits)\\
+        \fatsf{Signale} & Physikalische Repräsentation von Daten (z.B. elektrische Spannung, Schall)\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Was ist ein Signal?}
+Ein \fatsf{Signal} ist die Darstellung von Daten durch charakteristische Änderungen eine physikalischen Werts (über Raum oder Zeit)
+\begin{itemize}
+    \item \fatsf{Materiell:} Buchstaben auf Papier
+    \item \fatsf{Immateriell:} Schallwellen beim Sprechen
+    \item \fatsf{Elektrisch:} Spannung oder Strom im Draht
+\end{itemize}
+\subsubsection*{Bits und Signale}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        Was soll übertragen werden? & Daten (als Bits)\\
+        Was kann physisch übertragen werden? & Signale (z.B. Spannung)\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\fatsf{Wir brauchen:}
+\begin{itemize}
+    \item \fatsf{Kodierung:} Bits $\rightarrow$ Signale (Sender)
+    \item \fatsf{Dekodierung:} Signale $\rightarrow$ Bits (Empfänger)
+\end{itemize}
+\fatsf{Einfaches Beispiel (nicht praxisnah):}
+\begin{itemize}
+    \item Bit 1 = Strom vorhanden
+    \item Bit 0 = Kein Strom
+\end{itemize}
+\subsubsection*{Mekrsätze}
+\begin{itemize}
+    \item \enquote{Daten werden zu Signalen, damit Maschinen miteinander sprechen können}
+    \item \enquote{Ein Kabel speichert Daten, indem es sie unterwegs hält}
+    \item \enquote{Nur mit Signalen erreichen Bits ihr Ziel}
+\end{itemize}
+\subsubsection*{Technische Eigenschaften der Übertragung}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{Begriff} & \fatsf{Erklärung}\\
+        \midrule
+        \fatsf{Verzögerung (Delay d)} & Wie lange braucht ein Signal\\
+        \fatsf{Signalausbreitung (v)} & Geschwindigkeit der Signalverbreitung (z.B. Lichtgeschwindigkeit \texttt{c}, in Kupfer: ca. \texttt{2/3 c})\\
+        \fatsf{Datenrate (r)} & Wie viele Bits pro Sekunde können gesendet werden?\\
+        \fatsf{Fehlerrate} & Wie viele Bits kommen fehlerhaft an? Welche Fehlerbilder treten auf?\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Wie kann ein Kabel Daten \enquote{speichern}?}
+\begin{itemize}
+    \item Während der ersten \texttt{d} Sekunden ist das erste Bit \fatsf{unterwegs}, aber noch \fatsf{nicht angekommen}
+    \item In dieser Zeit hat der Sender bereits \texttt{d*r} Bits gesendet - diese Bits \fatsf{befinden sich im Kabel $\rightarrow$ \enquote{gespeichert} in der Leitung}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.3\linewidth]{Chapter 1_Images/MSC.jpeg}
+\end{figure}
+\subsubsection*{Zwei-Wege-Kommunikation: Übertragungsarten}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lll}
+        \toprule
+        \fatsf{Art} & \fatsf{Beschreibung} & \fatsf{Beispiel}\\
+        \midrule
+        \fatsf{Simplex} & Nur eine Seite sendet & Rodio\\
+        \fatsf{Halbduplex} & Sender und Empfänger wechseln sich ab & Walkie-Talkie, Gespräch\\
+        \fatsf{Vollduplex} & Beide Seiten können gleichzeitig senden & Telefonat, Webkommunikation\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\clearpage
+\subsubsection*{Halbduplex: Wechselnde Kommunikation}
+\begin{itemize}
+    \item \fatsf{Problem:} Beide senden gleichzeitig $\rightarrow$ Signale stören sich
+    \item \fatsf{Frage:} Wie erkennt ein Teilnehmer, wann der andere fertig ist?
+\end{itemize}
+\fatsf{Lösungen:}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 1_Images/Half duplex.jpeg}
+\end{figure}
+\begin{enumerate}
+    \item \fatsf{Time Division Duplex (TDD)}\\
+    $\rightarrow$ Feste Zeitslots, synchronisiert\\
+    Beispiel: A darf 10 ms senden, dann B für 10 ms usw.
+    \item \fatsf{On-Demand / dynamisch:}
+    \begin{itemize}
+        \item Sender kündigt Sendedauer vorher an
+        \item Oder: schickt spezielles \enquote{Ende}-Signal
+    \end{itemize}
+\end{enumerate}
+\fatsf{Herausforderungen:}
+\begin{itemize}
+    \item Max. Länge muss definiert sein
+    \item \enquote{Ende}-Signal darf \fatsf{nicht Teil der Nutzerdaten} sein
+    \item \fatsf{Bit-Synchronisation} nötig
+\end{itemize}
+\subsubsection*{Vollduplex - Gleichzeitiges Senden \& Empfangen}
+\begin{itemize}
+    \item \fatsf{Kabelgebunden:}
+    \begin{itemize}
+        \item Zwei separate Kabel (je Richtung) $\rightarrow$ zuverlässig, aber aufwändig (Kosten, Platz, Wartung)
+        \item \fatsf{Ein Kabel?} Möglich auf kurze Distanz (z.B. mit Signalverarbeitung, z.B. Echo-Unterdrückung)
+    \end{itemize}
+    \item \fatsf{Drahtlos / Funk / Kabel-TV:}
+    \begin{itemize}
+        \item \fatsf{Frequenz Division Duplex (FDD):}\\
+        Unterschiedliche Frequenzen für Hin- und Rückrichtung\\
+        \fatsf{$\rightarrow$ keine Kollision} durch Frequenztrennung
+    \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 1_Images/Full duplex.jpeg}
+\end{figure}
+\subsubsection*{Voll-Duplex mit TDD - Geht das überhaupt?}
+\fatsf{Klingt widersprüchlich, aber:}
+\begin{itemize}
+    \item Wenn \fatsf{Übertragungsmedium mindestens doppelt so schnell} ist wie die benötige Datenrate, dann:
+    \begin{itemize}
+        \item Teilnehmer A speichert Daten zwischen (z.B. als Datei oder in einem Speicherchip), während B sendet
+        \item Danach sendet A \fatsf{zwischengespeicherte + neue} Daten in kürzerer Zeit\\
+        $\rightarrow$ So wirkt es wie \fatsf{gleichzeitiges Senden}
+    \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 1_Images/TDD.jpeg}
+\end{figure}
+\begin{itemize}
+    \item \fatsf{Funktioniert bei digitalen Signalen}
+    \item \fatsf{Nicht geeignet für analoge Signale} (z.B. klassische analoge Telefonie)\\
+    $\rightarrow$ Da keine exakte Zwischenspeicherung möglich ist
+\end{itemize}
+\subsection{Netzwerkstruktur \& Vermittlungsverfahren}
+\fatsf{Warum nicht jedes Gerät direkt verbinden?}
+\begin{itemize}
+    \item Direkte Verbindung \fatsf{jedes Geräts mit jedem anderen} ist \fatsf{nicht skalierbar}\\
+    $\rightarrow$ Bei n Geräten: \fatsf{n(n-1)/2} Verbindungen nötig (explodiert schnell!)
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.8\linewidth]{Chapter 1_Images/Beirut Connections.jpeg}
+    \end{figure}
+    \clearpage
+    \item Lösung: \fatsf{Struktur im Netzwerk} einführen
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.55\linewidth]{Chapter 1_Images/Structure into a Network.jpeg}
+    \end{figure}
+\end{itemize}
+\subsubsection*{Netzwerkstruktur}
+Zwei Arten von Komponenten:
+\begin{itemize}
+    \item \fatsf{Endsysteme:} Benutzergeräte (PCs, Smartphones, etc.)
+    \item \fatsf{Vermittlungselemente:} Router, Switches
+\end{itemize}
+\subsubsection*{Vermittlungsarten (Switching)}
+\begin{enumerate}
+    \item \fatsf{Leitungsvermittlung (Circuit Switching)}
+    \begin{itemize}
+        \item Eine \fatsf{dedizierte Verbindung} (Schaltkreis) wird \fatsf{vorab} zwischen zwei Endsystemen aufgebaut\\
+        $\rightarrow$ Wie klassisches Telefonnetz (analog: \enquote{Fräulein vom Amt})
+        \item \fatsf{Verbindung bleibt exklusiv} für die Dauer der Kommunikation bestehen
+    \end{itemize}
+    \begin{itemize}
+        \item \fatsf{Vorteile:}
+        \begin{itemize}
+            \item Feste Ressourcen $\rightarrow$ \fatsf{garantierte Übertragung}
+            \item \fatsf{Keine Verzögerung durch Warteschlangen} (kein Queuing)
+        \end{itemize}
+        \item \fatsf{Nachteile:}
+        \begin{itemize}
+            \item Ressourcen \fatsf{blockiert}, auch bei Pausen
+            \item Verbindung muss \fatsf{vor dem Datentransfer aufgebaut} werden
+            \item Wenig effizient bei kurzen Nachrichten oder vielen Teilnehmern
+        \end{itemize}
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.72\linewidth]{Chapter 1_Images/Circuit Switching.jpeg}
+    \end{figure}
+    \clearpage
+    \item \fatsf{Paketvermittlung (Packet Switching)}
+    \begin{itemize}
+        \item Daten werden in \fatsf{Pakete} aufgeteilt (jeweils mit Zieladresse)
+        \item Pakete werden \fatsf{einzeln und unabhängig} durch das Netz geschickt
+        \item Kein fester Pfad nötig $\rightarrow$ \fatsf{dynamisch}es Routing möglich
+    \end{itemize}
+    \fatsf{Eigenschaften:}
+    \parpic(6cm,3.5cm)[r]{
+        \includegraphics[width=4.5cm, height=6cm]{Chapter 1_Images/store-and-forward.jpeg}
+    }
+    \begin{itemize}
+        \item Jeder \fatsf{Switch} muss:
+        \begin{enumerate}
+            \item Paket empfangen
+            \item Zwischenspeichern (Buffering)
+            \item Zieladresse auslesen
+            \item Nächsten Weiterleitungspfad bestimmen
+            \item Paket weiterleiten (\enquote{store-and-forward})
+        \end{enumerate}
+    \end{itemize}
+    \fatsf{Vorteile:}
+    \begin{itemize}
+        \item \fatsf{Effiziente Ressourcennutzung}, da keine exklusive Leitung
+        \item Flexibel \& robust bei Ausfällen oder Störungen
+    \end{itemize}
+    \fatsf{Herausforderungen:}
+    \begin{itemize}
+        \item Start/End eines Pakets erkennen
+        \item Adressing und Routing
+        \item Pufferüberläufe \& Status (Congestion)
+        \item Höherer \fatsf{Verwaltungsaufwand} durch Header \& Steuerinformationen
+    \end{itemize}
+\end{enumerate}
+\subsubsection*{Merksätze}
+\begin{itemize}
+    \item \enquote{Direkte Verbindungen skalieren nicht - Vermittlung ist nötig}
+    \item \enquote{Leitungsvermittlung = reserviert \& einfach, aber unflexibel}
+    \item \enquote{Paketvermittlung = flexibel \& effizient, aber komplexer}
+\end{itemize}
+\clearpage
+\subsection{Multiplexing \& Shared Resources}
+\fatsf{Multiplexing Definition:}
+\begin{itemize}
+    \item Organisation der Übertragung mehrere Datenströme über eine einzige physische Verbindung\\
+    $\rightarrow$ Verschiedene Sender teilen sich ein Übertragungsmedium
+    \item Das Ziel ist es, \fatsf{eine Leitung effizient zu nutzen}, statt für jede Verbindung eine eigene Leitung bereitzustellen
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\linewidth]{Chapter 1_Images/Multiplexing.jpeg}
+\end{figure}
+\subsubsection*{Wie funktioniert Multiplexing konkret?}
+\fatsf{Beispiel: Zwei PCs senden gleichzeitig an denselben Empfänger}
+\begin{itemize}
+    \item Wenn beide gleichzeitig auf derselben Leitung senden, \fatsf{würden sich ihre Signale überlappen $\rightarrow$ Signal-Kollision!}
+    \item Multiplexing sorgt dafür, dass diese Übertragungen \fatsf{geordnet} und \fatsf{kollisionsfrei} ablaufen - entweder in der Zeit, über verschiedene Frequenzen, oder durch andere Techniken
+\end{itemize}
+\subsubsection*{Multiplexing-Methoden}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{p{4cm} p{6.5cm} p{4cm}}
+        \toprule
+        \fatsf{Methode} & \fatsf{Beschreibung} & \fatsf{Beispiel}\\
+        \midrule
+        \fatsf{TDM} (Time Division Multiplexing) & Jede Verbindung bekommt eine feste \fatsf{Zeitspanne} (Zeitschlitz) zur Übertragung & Telefonnetz, Ethernet \\
+        \fatsf{FDM} (Frequency Division Multiplexing) & Daten werden gleichzeitig, aber auf \fatsf{unterschiedlichen Frequenzen} gesendet & UKW-Radio, Kabelfernsehen\\
+        \fatsf{WDM} (Wavelength Division Multiplexing) & Wie FDM, aber in der \fatsf{optischen Kommunikation (Glasfaser)} & Glasfasernetze\\
+        \fatsf{CDM} (Code Division Multiplexing) & Jeder Sender bekommt einen eindeutigen Code & Mobilfunk (3G/UMTS)\\
+        \fatsf{SDM} (Space Division Multiplexing) & Verschiedene Signale laufen über \fatsf{räumlich getrennte Kanäle, z.B. in Mobilfunkzellen} & Mobilfunknetze (4G/5G) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+\subsubsection*{Demultiplexing}
+\fatsf{Gegenstück zu Multiplexing:} Trennt am Empfänger die einzelnen Datenströme wieder auf
+\subsubsection*{Upward vs. Downward Multiplexing} 
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{l p{6cm} p{6cm}}
+        \toprule
+        \fatsf{Upward} & Viele logische Verbindungen teilen sich \fatsf{eine physische Verbindung} & Mehrere Apps auf deinem Handy nutzen gleichzeitig das WLAN\\
+        \fatsf{Downward} & Eine logische Verbindung nutzt \fatsf{mehrere physische Verbindungen} & Download-Boosting durch mehrere Leitungen\\
+        \bottomrule
+    \end{tabular}
+\end{table}
+\subsubsection*{Shared Resources}
+\begin{itemize}
+    \item Multiplexing regelt den \fatsf{Zugriff auf gemeinsam genutzte Ressourcen} - z.B. ein drahtloses Medium
+    \item \fatsf{Beispiele für geteilte Ressourcen:}
+    \begin{itemize}
+        \item Funkfrequenzen (Luft als Übertragungsmedium)
+        \item Gemeinsamer Draht (Kupferkabel)
+        \item Ein Netzwerk-Switch oder Routerport
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Das Problem der Mehrfachzugriffe (Multiple Access)}
+\begin{itemize}
+    \item \fatsf{Broadcast-Medium} (z.B. Luft, Funk, geteiltes Kabel) $\rightarrow$ Daten erreichen alle Teilnehmer
+    \item \fatsf{Nur ein Sender zur gleichen Zeit erlaubt} $\rightarrow$ sonst: Kollisionen
+    \item Lösung: \fatsf{Medium Access Control (MAC)}
+\end{itemize}
+\subsubsection*{Zugriffsverfahren (Medium Access Control / MAC)}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{l l p{8cm}}
+        \toprule
+        \fatsf{Verfahren} & \fatsf{Beispiel} & \fatsf{Erklärung}\\
+        \midrule
+        \fatsf{Zentralisiert (Lehrer-Schüler-Prinzip)} & Unterricht & Nur der Lehrer gibt Schülern das Wort (Zugang zum Medium)\\
+        \fatsf{Dezentralisiert (Party-Prinzip)} & Gesprächsrunde & Jeder versucht zu sprechen, wartet auf Pause - Kollisionen möglich, dann Rückzug \& Wiederholung\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Forwarding und Next Hop Selection}
+\fatsf{Was ist Forwarding?}
+\begin{itemize}
+    \item Forwarding ist der \fatsf{Prozess, bei dem ein Router entscheidet, wohin ein Datenpaket als Nächstes geschickt werden soll}, damit es sein Ziel erreicht
+    \item Es geht \fatsf{nicht} darum, den ganzen Weg zu planen, sondern nur den \fatsf{nächsten Schritt} - den sogenannten \fatsf{Next Hop}
+\end{itemize}
+\clearpage
+\subsection{Netzwerkorganisation \& Abstraktion}
+\fatsf{Ziel}: Wie können viele, verschiedene (\enquote{alien}) Computer effizient kommunizieren?
+\subsubsection*{Wichtigstes Konzept: Abstraktion}
+\begin{itemize}
+    \item \fatsf{Abstraktion} vereinfacht komplexe Systeme, indem sie Details verbirgt
+    \item Beispiele:
+    \begin{itemize}
+        \item In der Programmierung von Maschinencode zu High-Level-Sprachen
+        \item In Netzwerken: durch \fatsf{Schichtenmodelle} (Layer Models)
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Netzwerk-Schichtenmodelle (Layer Models)}
+\fatsf{OSI-Modell (ISO/OSI)}
+\begin{itemize}
+    \item \fatsf{7 Schichten} (standardisiert, konzeptionell)
+    \item Unterteilt Aufgaben der Datenkommunikation in \fatsf{klar definierte Ebenen}
+    \item Ziel: \fatsf{Interoperabilität} und \fatsf{Modularität}
+\end{itemize}
+\fatsf{Internetmodell}
+\begin{itemize}
+    \item \fatsf{5-Schichten-Modell} (praktischer, realitätsnäher)
+    \item Nutzt im Kern die unteren 5 OSI-Schichten
+\end{itemize}
+\subsubsection*{Kommunikation im Netzwerk: Was ist ein Protokoll?}
+Ein \fatsf{Protokoll} definiert \fatsf{Format, Reihenfolge und Regeln} der Nachrichtenübertragung zwischen zwei oder mehreren Geräten\\
+\fatsf{Funktionen eines Protokolls:}
+\begin{itemize}
+    \item Format \& Struktur der Daten (Header, Payload, etc.)
+    \item Verhalten beim Senden und Empfangen
+    \item Beispiele für menschliche Protokolle: Begrüßung, Telefonanruf (Anruf $\rightarrow$ Antwort $\rightarrow$ Gespräch)
+\end{itemize}
+\subsubsection*{Schichtenarchitektur (Layered Architecture)}
+\parpic(5.5cm,5cm)[r]{
+    \includegraphics[width=8cm, height=4cm]{Chapter 1_Images/Layered Architecture.jpeg}
+}
+\begin{itemize}
+    \item Jede Schicht:
+    \begin{itemize}
+        \item bietet \fatsf{einen Dienst} (Service) für die darüberliegende Schicht
+        \item nutzt den Dienst der darunterliegenden Schicht
+    \end{itemize}
+    \item Kommunikation erfolgt \fatsf{zwischen gleichrangigen Entitäten (Peers)} \\ derselben Schicht
+    \item Vorteile:
+    \begin{itemize}
+        \item Austauschbarkeit von Schichten
+        \item Klarheit \& Wartbarkeit
+    \end{itemize}
+    \item Nachteil: zusätzlicher Overhead (mehr Protokollinformationen)
+\end{itemize}
+\subsubsection*{Datenbegriffe in den Schichten (Data Units)}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{Begriff} & \fatsf{Bedeutung}\\
+        \midrule
+        \fatsf{PDU} & Protocol Data Unit - gesamte Einheit, die auf einer Schicht verarbeitet wird\\
+        \fatsf{SDU} & Service Data Unit - \enquote{Nutzerdaten}, die von einer höheren Schicht übergeben wurden\\
+        \fatsf{PCI} & Protocol Control Information - Steuerdaten für die Kommunikation auf derselben Ebene\\
+        \fatsf{Packet} & Allgemeiner Begriff für Transporteinheit\\
+        \fatsf{Datagram} & Verbindungslos gesendetes Packet\\
+        \fatsf{Frame} & Datenpaket auf Sicherungsschicht mit finalem Header/Trailer\\
+        \fatsf{Cell} & Feste kleine Pakete (z.B. bei ATM)\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Verteilte Systeme \& Netzwerke}
+\fatsf{Verteilte Maschine:}
+\begin{itemize}
+    \item Besteht aus \fatsf{mehreren autonomen Systemen (AS)}, verbunden durch ein \fatsf{Kommunikationssystem (CSS)}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.3\linewidth]{Chapter 1_Images/Distributed Systems.jpeg}
+\end{figure}
+\fatsf{Wichtige Eigenschaft:}
+\begin{itemize}
+    \item Das Kommunikationssystem \fatsf{versteckt Komplexität} $\rightarrow$ Fehler, Heterogenität, Standorte, etc. werden \fatsf{transparent}
+    \item Verteilte Systeme setzen auf \fatsf{funktionierenden Netzwerken auf}
+\end{itemize}
+\clearpage
+\subsection{OSI-Modell}
+\fatsf{Was ist das OSI-Modell?}
+\begin{itemize}
+    \item Das \fatsf{OSI-Modell} ist ein \fatsf{theoretisches Modell}, das die Kommunikation zwischen zwei Computern in \fatsf{sieben Schichten (Layers)} aufteilt
+    \item Jede Schicht hat \fatsf{eine bestimmte Aufgabe} und arbeitet mit der darunterliegenden zusammen - wie bei einer \fatsf{Leiter}, von der Hardware bis zur Software
+\end{itemize}
+\subsubsection*{Warum OSI?}
+\begin{itemize}
+    \item \fatsf{Vereinheitlichung:} Damit Geräte unterschiedlicher Hersteller zusammenarbeiten können
+    \item \fatsf{Abstraktion:} Komplexe Vorgänge werden in verständliche Teile zerlegt
+    \item \fatsf{Austauschbarkeit:} Einzelne Schichten können verändert werden, ohne das ganze System zu beeinflussen
+\end{itemize}
+\subsubsection*{Die 7 Schichten des OSI-Modells}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter 1_Images/OSI Modell.jpeg}
+\end{figure}
+\begin{enumerate}
+    \item \fatsf{Physical Layer (Physikalische Schicht)}\\
+    \enquote{Wie werden einzelne Bits physisch übertragen?}
+    \begin{itemize}
+        \item Überträgt rohe Bits als elektrische Signale, Lichtimpulse oder Funkwellen
+        \item Beispiel: Stecker, Kabel, Funkfrequenz, Spannung
+        \item \fatsf{Hardware-orientiert}
+        \item \fatsf{Protokoll-Beispiel:} RS232, Ethernet PHY
+    \end{itemize}
+    \item \fatsf{Data Link Layer (Sicherungsschicht)}\\
+    \enquote{Wie machen wir aus den rohen Bits sinnvolle Datenrahmen und erkennen Fehler?}
+    \begin{itemize}
+        \item Erkennt \& behebt Übertragungsfehler (z.B. durch Prüfsummen)
+        \item Teilt den Datenstrom in \fatsf{Frames}
+        \item Flow-Control möglich (z.B. Sliding Window)
+        \item Bei LANs:
+        \begin{itemize}
+            \item \fatsf{LLC (Logical Link Control):} Fehlererkennung
+            \item \fatsf{MAC (Media Access Control):} Zugangskontrolle zum Übertragungsmedium (z.B. CSMA/CD)
+        \end{itemize}
+        \item \fatsf{Protokoll-Beispiel:} Ethernet, WLAN
+    \end{itemize}
+    \item \fatsf{Network Layer (Vermittlungsschicht)}\\
+    \enquote{Wie kommt ein Paket von A nach B - auch über mehrere Netze hinweg?}
+    \begin{itemize}
+        \item Routing: Pfadwahl durch das Netz
+        \item Adressierung (z.B. IP-Adressen)
+        \item Fragmentierung \& Weiterleitung von Paketen
+        \item \fatsf{Protokoll-Beispiel:} IP, X.25
+    \end{itemize}
+    \item \fatsf{Transport Layer (Transportschicht)}\\
+    \enquote{Wie garantieren wir eine sichere Ende-zu-Ende-Kommunikation zwischen Prozessen?}
+    \begin{itemize}
+        \item Verbindungsaufbau \& -steuerung zwischen \fatsf{Anwendungen/Prozessen}
+        \item Fehlerkontrolle, Wiederholungen, Reihenfolge
+        \item Multiplexing von Datenstömen (mehrere Verbindungen über einen Kanal)
+        \item \fatsf{Protokoll-Beispiel:} TCP (zuverlässig), UDP (schnell, aber unzuverlässig)
+    \end{itemize}
+        \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Chapter 1_Images/Transport Layer.jpeg}
+    \end{figure}
+    \item \fatsf{Session Layer (Sitzungssicht)}\\
+    \enquote{Wie organisieren wir längere Kommunikationssitzungen?}
+    \begin{itemize}
+        \item Steuert Dialoge (z.B. wer darf wenn senden?)
+        \item Checkpoints für Wiederherstellung nach Fehlern
+        \item Heute selten genutzt, Funktionen oft in Transport-/Application-Schicht integriert
+        \item \fatsf{Beispiel:} frühere Dienste wie Teletext
+    \end{itemize}
+    \item \fatsf{Presentation Layer (Darstellungsschicht)}\\
+    \enquote{Wie sorgen wir dafür, dass beide Seiten die Daten verstehen?}
+    \begin{itemize}
+        \item Übersetzt Datenformate (z.B. Zeichencodierung: ASCII $\leftrightarrow$ Unicode)
+        \item Syntaxvereinheitlichung
+        \item \fatsf{Datenkompression \& Verschlüsselung} möglich
+        \item \fatsf{Beispiel:} ASN.1, BER, google Protobuf
+        \item In modernen Netzwerken oft Teil der Anwendungsschicht
+    \end{itemize}
+    \item \fatsf{Application Layer (Anwendungsschicht)}\\
+    \enquote{Wie interagieren Anwendungen mit dem Netzwerk?}
+    \begin{itemize}
+        \item Bietet Netzwerkdienste für Benutzerprogramme
+        \item Enthält viele \enquote{Service Elements} wie:
+        \begin{itemize}
+            \item Dateiübertragung (FTP)
+            \item E-Mail (SMTP, X.400)
+            \item Web (HTTP)
+        \end{itemize}
+        \item Praktisch: das, was du als Anwender siehst und nutzt
+    \end{itemize} 
+\end{enumerate}
+\subsubsection*{Wichtige Hinweise}
+\begin{itemize}
+    \item Viele Dienste werden \fatsf{in mehreren Schichten} umgesetzt (z.B. Fehlerkorrektur)
+    \item Das OSI-Modell ist \fatsf{konzeptionell} - in der Praxis dominiert das Internet-Modell
+    \item Dennoch: \fatsf{OSI hilft enorm beim Verstehen komplexer Netzwerke}
+\end{itemize}
+\subsubsection*{Zwei Arten von Netzwerken / Protokollen}
+Es gibt \fatsf{zwei grundlegende Arten}, wie Netzwerke Daten übertragen:
+\begin{enumerate}
+    \item \fatsf{Connection-Oriented (CO)}
+    \begin{itemize}
+        \item Verbindung wird vorher aufgebaut, wie bei einem Telefonat\\
+        $\rightarrow$ Beispiel: \fatsf{TCP}
+    \end{itemize} 
+    \item \fatsf{Connectionless (CL)}
+    \begin{itemize}
+        \item Daten werden einfach losgeschickt, ohne vorherige Verbindung\\
+        $\rightarrow$ Beispiel: \fatsf{UDP}
+    \end{itemize}
+\end{enumerate}
+\subsubsection*{Conncection-Oriented (Verbindungsorientiert)}
+\fatsf{Ablauf in 3 Phasen:}
+\begin{enumerate}
+    \item \fatsf{Verbindungsaufbau} (z.B. Handshake)
+    \item \fatsf{Datenübertragung}
+    \item \fatsf{Verbindungsabbau}
+\end{enumerate}
+Beispiel: \fatsf{Telefonanruf}
+\begin{itemize}
+    \item Erst wählt du die Nummer
+    \item Dann sprichst du
+    \item Dann legst du auf
+\end{itemize}
+\fatsf{Wichtig:}
+\begin{itemize}
+    \item Auch wenn der Nutzer \enquote{verbunden} ist, wissen die \fatsf{Router im Internet} davon \fatsf{nichts}
+    \item Die Verbindung ist nur ein \fatsf{Zustand an beiden Enden} (also auf deinem Gerät \& dem Server)
+    \item Das erlaubt bessere Dienste: \fatsf{Zuverlässigkeit, Flusskontrolle, Staukontrolle}
+    \item \fatsf{Aber:} Das erzeugt \fatsf{Overhead} (mehr Daten, mehr Speicher, mehr Komplexität)
+\end{itemize}
+\subsubsection*{Connectionless (Verbindungsfrei)}
+\fatsf{Ablauf:}
+\begin{enumerate}
+    \item \fatsf{Nur Datenübertragung} - keine Vorbereitung, keine Aufräumphase
+\end{enumerate}
+Beispiel: \fatsf{Postkarte verschicken}
+\begin{itemize}
+    \item Du schickst sie einfach ab, ohne zu fragen, ob jemand da ist
+    \item Sie kommt vielleicht an - oder auch nicht
+\end{itemize}
+\fatsf{Eigenschaften:}
+\begin{itemize}
+    \item Kein Zustand nötig \fatsf{$\rightarrow$ Skalierbar!}
+    \item Aber: \fatsf{Keine Garantie}, dass Daten ankommen oder geordnet sind
+    \item Wird oft in Echtzeitanwendungen genutzt, wo Geschwindigkeit wichtig ist als Zuverlässigkeit (z.B. \fatsf{Video-Streaming, Online-Gaming})
+\end{itemize}
+\subsubsection*{Was ist besser?}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lll}
+        \toprule
+        & \fatsf{Connection-Oriented (z.B. TCP)} & \fatsf{Connectionless (z.B. UDP)}\\
+        \midrule
+        Vorteil & Zuverlässig, ordentlich & Schnell, einfach, skalierbar\\
+        Nachteil & Mehr Overhead & Keine Garantie\\
+        Beispiel & Web, E-Mail & Video, DNS, Voice Chat\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+Du kannst sogar \fatsf{verbindungsorientierte Dienste auf verbindungslose Protokolle bauen} (z.B. QUIC auf UDP)
+\subsubsection*{Beispiel: Was passiert, wenn du eine Webseite aufrufst}
+Du öffnest den Browser $\rightarrow$ gibst eine URL ein $\rightarrow$ und dann passiert viel im Hintergrund
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Chapter 1_Images/Layers in Action.jpeg}
+\end{figure}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{OSI-Schicht} & \fatsf{Aufgabe}\\
+        \midrule
+        \fatsf{7 (6,5) Anwendung} & HTTP-Anfrage erstellen, Antwort anzeigen\\
+        \fatsf{4 - Transport} & TCP-Verbindung aufbauen, Daten in Reihenfolge bringen\\
+        \fatsf{3 - Netzwerk} & IP: Routing durch Internet (Router zu Router)\\
+        \fatsf{2 - Sicherung} & Ethernet/WLAN: Rahmen für jedes Paket\\
+        \fatsf{1 - Bitübertragung} & Sendet die Bits über Kabel oder Funk\\
+        \bottomrule 
+    \end{tabular}
+\end{table}

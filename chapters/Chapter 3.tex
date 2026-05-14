@@ -1,0 +1,418 @@
+\section{Internetworking + DNS}
+\subsection{Internet Protocol (IP)}
+\subsubsection*{Was ist das Internet?}
+Das Internet ist ein Netzwerk von Netzwerken - also ein Zusammenschluss vieler kleinerer, oft sehr unterschiedlicher Netzwerke:
+\begin{itemize}
+    \item \fatsf{Internet = \enquote{Inter}-Netzwerk:} Ein globales System, das viele kleinere Netzwerke miteinander verbindet
+    \item \fatsf{Router als zentrale Verbindungsstellen:} Router übernehmen das Weiterleiten (Forwarding) von Datenpaketen zwischen Netzwerken
+    \item \fatsf{Kleinere Netzwerke = LANs:} Oft basieren sie auf dem IEEE-802-Standard (z.B. Ethernet, WLAN)
+    \item \fatsf{Zwei Arten der Kommunikation:}
+    \begin{itemize}
+        \item \fatsf{Lokal (Local):} Kommunikation innerhalb eines LANs, ohne Router
+        \item \fatsf{Remote (Fern):} Kommunikation über Router hinweg - über das Internet
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Was braucht man, damit das Internet funktioniert?}
+Damit verschiedene Netzwerke miteinander kommunizieren können, sind mehrere Komponenten nötig:
+\begin{enumerate}
+    \item \fatsf{Logische Adressierung}
+    \begin{itemize}
+        \item Physikalische Adressen (z.B. MAC-Adressen von IEEE 802) sind nicht ausreichend
+        \item \fatsf{IP-Adressen} (z.B. 192.168.1.1) dienen als logische Adressen, unabhängig von der zugrundeliegenden Hardware
+    \end{itemize}
+    \item \fatsf{Zuordnung von logischen zu physikalischen Adressen}
+    \begin{itemize}
+        \item z.B. mit \fatsf{ARP (Address Resolution Protocol)}
+        \item Wird benötigt, um Pakete im lokalen Netz korrekt zuzustellen
+    \end{itemize}
+    \item \fatsf{Mechanismus zur Unterscheidung: lokal oder remote?}
+    \begin{itemize}
+        \item Beim Senden eines Pakets muss entscheiden werden:
+        \begin{itemize}
+            \item Ist der Empfänger im selben LAN?
+            \item Oder muss das Paket über das Internet weitergeleitet werden?
+        \end{itemize}
+        \item Diese Entscheidung trifft meist der Router anhand von Routing-Tabellen
+    \end{itemize}
+    \item \fatsf{Unterstützung für viele Technologien}
+    \begin{itemize}
+        \item Das Internet muss verschiedenste Übertragungstechniken unterstützen:
+        \begin{itemize}
+            \item Ethernet, WLAN, Glasfaser, Mobilfunk usw.
+        \end{itemize}
+        \item Dazu gehören auch Funktionen wie:
+        \begin{itemize}
+            \item \fatsf{Fragmentierung} (Aufteilen großer Pakete)
+            \item \fatsf{Diagnose} (z.B. ICMP für Fehlermeldungen)
+        \end{itemize}
+        $\rightarrow$ All das wird durch das Internetprotokoll \fatsf{IP (Internet Protocol)} möglich gemacht
+    \end{itemize}
+\end{enumerate}
+\subsubsection*{IPv4 - Das klassische Internetprotokoll}
+\begin{itemize}
+    \item \fatsf{Historie}
+    \begin{itemize}
+        \item Ursprünglich definiert in RFC 760 (Januar 1980)
+        \item Weltweit im Einsatz - lange das Rückgrat des Internets
+        \item Verwendet 32-Bit-Adressen $\rightarrow$ max. ca. 4,3 Mrd. eindeutige Adressen
+    \end{itemize}
+    \item \fatsf{IPv4 Adressierung}
+    \begin{itemize}
+        \item Beispieladresse: 192.168.1.53
+        \item Darstellung in vier Dezimalblöcken (z.B. 192.168.0.1)
+    \end{itemize}
+    \item \fatsf{Helferprotokolle für IPv4}
+    \begin{table}[H]
+        \centering
+        \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{ll}
+            \toprule
+            \fatsf{Funktion} & \fatsf{Protokoll}\\
+            \midrule
+            Adressvergabe & DHCP\\
+            Auflösung IP $\rightarrow$ MAC & ARP (Request/Reply)\\
+            Fehlermeldungen, Diagnose & ICMPv4\\
+            Multicast-Gruppen & IGMP\\
+            \bottomrule 
+        \end{tabular}
+    \end{table}
+    \item \fatsf{Subnetting}
+    \begin{itemize}
+        \item Aufteilung eines Netzwerks in Subnetze mithilfe von Subnetzmasken, z.B. 255.255.255.0
+        \item Dient zur Unterscheidung von Netzanteil in der Adresse
+    \end{itemize}
+    \item \fatsf{Beispielkommunikation (vereinfacht):}
+    \begin{itemize}
+        \item Host A will Daten an 192.168.1.42 senden
+        \item Prüft: Ist Ziel im eigenen Netz?
+        \item $\rightarrow$ Wenn ja: ARP-Request $\rightarrow$ MAC-Adresse von 192.168.1.42 wird gefragt
+        \item $\rightarrow$ Dann: Direkt senden. Falls nein: Routing über Standard-Gateway
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Subnetzmaske}
+\begin{itemize}
+    \item \fatsf{Was ist eine Subnetzmaske?}\\
+    Eine \fatsf{Subnetzmaske} (engl. subnet mask) trennt bei einer IP-Adresse den \fatsf{Netzwerkanteil} vom \fatsf{Hostanteil}. Sie wird gemeinsam mit einer IP-Adresse verwendet, um zu bestimmen:
+    \begin{itemize}
+        \item \fatsf{Zu welchem Netzwerk} eine IP-Adresse gehört
+        \item \fatsf{Welche Adressen} im selben Subnetz liegen
+    \end{itemize}
+    \item \fatsf{Beispiel einer IPv4-Adresse und ihrere Subnetzmaske:}
+    \begin{itemize}
+        \item IP-Adresse: 192.168.1.10
+        \item Subnetzmaske: 255.255.255.0
+    \end{itemize}
+    In binärer Form:
+\begin{lstlisting}
+IP-Adresse:     11000000.10101000.00000001.00001010
+Subnetzmaske:   11111111.11111111.11111111.00000000
+\end{lstlisting}   
+    Die 1-Bits in der Subnetzmaske markieren den \fatsf{Netzwerkanteil}, die 0-Bits den \fatsf{Hostanteil}\\
+    \fatsf{In diesem Fall:}
+    \begin{itemize}
+        \item Netzwerkanteil: 192.168.1
+        \item Hostanteil: 10
+    \end{itemize}
+    Das bedeutet: Alle Geräte mit IP-Adressen von 192.168.1.1 bis 192.168.1.254 liegen im \fatsf{gleichen Subnetz}
+    \item \fatsf{Wozu braucht man Subnetzmasken?}
+    \begin{enumerate}
+        \item \fatsf{Netzwerke unterteilen (Subnetting)}\\
+        Große Netzwerke werden in kleinere Subnetze aufgeteilt, um:
+        \begin{itemize}
+            \item Broadcast-Verkehr zu reduzieren
+            \item Sicherheit zu erhöhen
+            \item IP-Adressen effizienter zu verwalten
+        \end{itemize}
+        \item \fatsf{Routing}\\
+        Router verwenden Subnetzmasken, um zu entscheiden, ob ein Zielgerät \fatsf{im eigenen Netzwerk} liegt oder ob das Paket \fatsf{weitergeleitet} werden muss
+    \end{enumerate}
+    \item \fatsf{CIDR-Notation}\\
+    Subnetzmasken werden oft in \fatsf{CIDR-Notation} geschrieben, z.B.: 
+    \begin{grayInfoBox}
+        192.168.1.10/24
+    \end{grayInfoBox}
+    Die Zahl 24 steht für die Anzahl der 1-Bits in der Subnetzmaske:
+    \begin{grayInfoBox}
+        /24 = 255.255.255.0
+    \end{grayInfoBox}
+    Einige gängige CIDR-Werte:
+    \begin{table}[H]
+        \centering
+        \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{lll}
+            \toprule
+            \fatsf{CIDR} & \fatsf{Subnetzmaske} & \fatsf{Anzahl Hosts}\\
+            \midrule
+            /8 & 255.0.0.0 & 16.777.214 Hosts\\
+            /16 & 255.255.0.0 & 65.534 Hosts\\
+            /24 & 255.255.255.0 & 254 Hosts\\
+            /30 & 255.255.255.252 & 2 Hosts\\
+            \bottomrule 
+        \end{tabular}
+    \end{table}
+    (immer abzüglich Netz- und Broadcast-Adresse)
+\end{itemize}
+
+
+\subsubsection*{IPv6 - Die moderne Alternative}
+\begin{itemize}
+    \item \fatsf{Historie \& Motivation}
+    \begin{itemize}
+        \item Entwickelt ab 1995, RFC 2460 erschien 1998
+        \item Ziel: Rückkehr zur Einfachheit \& Autonomie der Anfangsjahre
+        \item Hauptgründe für Einführung:
+        \begin{itemize}
+            \item End-to-End Prinzip wiederherstellen
+            \item Riesiger Adressraum (128 Bit $\rightarrow$ 3,4 $\times$ $10^{38}$ Adressen)
+        \end{itemize}
+    \end{itemize}
+    \item \fatsf{IPv6 Adressierung}
+    \begin{itemize}
+        \item Beispieladresse: 2001:0db8::1
+        \item Hexadezimal dargestellt
+        \item Automatische Konfiguration möglich (SLAAC)
+        \item Trennung in Netz- und Hostanteil meist bei /64
+    \end{itemize}
+    \item \fatsf{Helferprotokolle für IPv6}
+    \begin{table}[H]
+        \centering
+        \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{ll}
+            \toprule
+            \fatsf{Funktion} & \fatsf{Protokoll}\\
+            \midrule
+            Adressvergabe & DHCPv6, SLAAC\\
+            Auflösung IP $\rightarrow$ MAC & NDP (NS/NA)\\
+            Routinginformation & RA, RS\\
+            Multicast-Management & MLD\\
+            Fehlermeldungen, Diagnose & ICMPv6\\
+            \bottomrule 
+        \end{tabular}
+    \end{table}
+\end{itemize}
+\subsubsection*{Warum ist der Umstieg so schwierig?}
+\begin{itemize}
+    \item \fatsf{Vorteile von IPv6:}
+    \begin{itemize}
+        \item Fast unbegrenzter Adressraum
+        \item Keine Konflikte durch private IPv4-Adressen \& NAT
+        \item Entlastung bei IPSs durch Wegfall komplizierter NAT-Strukturen
+    \end{itemize}
+    \item \fatsf{Nachteile bzw. Herausforderungen:}
+    \begin{itemize}
+        \item Nicht kompatibel mit IPv4 $\rightarrow$ beide Protokolle müssen parallel betrieben werden (Dual Stack)
+        \item Anpassung von Netzwerk- und Sicherheitsinfrastruktur nötig
+        \item Geringer Nutzen für viele Unternehmen $\rightarrow$ hohes Aufwand-Nutzen-Verhältnis
+    \end{itemize}
+\end{itemize}
+\clearpage
+\subsection{Domain Name Service (DNS)}
+\subsubsection*{Was ist das Problem, das DNS löst?}
+\begin{itemize}
+    \item \fatsf{Ausgangspunkt}\\
+    Wir haben gelernt, dass im Internet Geräte durch IP-Adressen eindeutig adressiert werden - z.B. 130.83.47.181. Aber für Menschen ist es schwer, sich solche Adressen zu merken
+    $\rightarrow$ Problem: Wie kann Alice Bob kontaktieren, wenn sie seine IP-Adresse nicht kennt?
+    \item \fatsf{Lösung}\\
+    Das Domain Name System (DNS) löst dieses Problem:
+    \begin{itemize}
+        \item DNS ist ein verteilter Dienst, der Hostnamen (wie \url{www.tu-darmstadt.de}) in IP-Adressen übersetzt
+        \item Man nennt das auch \enquote{Namensauflösung}
+    \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Chapter_3_Images/DNS.jpeg}
+\end{figure}
+\subsubsection*{Warum braucht man verschiedene Arten von Adressen?}
+Im Internet gibt es auf verschiedenen Schichten unterschiedliche Adresstypen:
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{llll}
+        \toprule
+        \fatsf{Ebene} & \fatsf{Beispiel} & \fatsf{Art der Adresse} & \fatsf{Eigenschaften}\\
+        \midrule
+        Application Layer & \url{www.tu-darmstadt.de} & Hostname & Menschlich lesbar, hierarchisch\\
+        Internet Layer & 130.83.47.181 & IP-Adresse (IPv4/IPv6) & Maschinenlesbar, hierarchisch\\
+        Data Link Layer & 00:97:F1:12:34:56 & MAC-Adresse & Maschinenlesbar, flach (nicht hierarchisch)\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+$\rightarrow$ Deshalb braucht man Mechanismen, um zwischen diesen Adresstypen zu übersetzen (DNS für Hostname $\rightarrow$ IP, ARP für IP $\rightarrow$ MAC)\\
+\fatsf{Hierarchical vs. Flat}
+\begin{itemize}
+    \item \fatsf{Hierarchisch}
+    \begin{itemize}
+        \item Die Adressen sind \fatsf{in Ebenen oder Schichten organisiert}
+        \item Sie können in Teile zerlegt werden, die jeweils eine Bedeutung haben (z.B. bei einer IP-Adresse: Netzwerkanteil und Hostanteil)
+        \item Das hilft, die Adressen effizient zu strukturieren, zu verwalten und zu routen
+        \item Beispiel: IP-Adressen - der Teil links bestimmt das Netzwerk, der Teil rechts das Gerät im Netzwerk
+    \end{itemize}
+    \item \fatsf{Flach:}
+    \begin{itemize}
+        \item Die Adressen sind \fatsf{eindimensional ohne Struktur oder Unterteilung}
+        \item Jedes Gerät hat eine eindeutige, aber nicht hierarchisch gegliederte Adresse
+        \item Es gibt keine \enquote{Untergruppen} oder logische Schichten in der Adresse
+        \item Beispiel: MAC-Adressen - jede Adresse ist einzigartig, aber es gibt keine Teile, die eine Struktur oder Organisation anzeigen
+    \end{itemize}
+\end{itemize}
+\subsubsection*{High Order and Low Order}
+\begin{enumerate}
+    \item \fatsf{Grundidee:}
+    \begin{itemize}
+        \item \fatsf{High Order} bezeichnet den \fatsf{höherwertigen, übergeordneten} Teil eines Identifikators oder einer Adresse\\
+        Er gibt eine \fatsf{breite, grobe oder übergeordnete Zuordnung} an (z.B. ein Netzwerk, eine Organisation oder ein Hersteller)
+        \item \fatsf{Low Order} bezeichnet den \fatsf{niederwertigen, spezifischeren} Teil eines Identifikators. Er steht für \fatsf{feinere, detailliertere oder individuelle Zuordnung} (z.B. ein einzelner Host, ein Interface oder ein Gerät innerhalb der übergeordneten Struktur)
+    \end{itemize}
+    \item \fatsf{Beispiel:}
+    \begin{table}[H]
+        \centering
+        \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{lp{6cm}p{6cm}}
+            \toprule
+            \fatsf{Identifikator} & \fatsf{High Order (übergeordnet)} & \fatsf{Low Order (fein)}\\
+            \midrule
+            \fatsf{Hostname} & Domain, die von einer Registrierungsstelle vergeben wird, z.B. .com, .edu oder tu-darmstadt.de (z.B. bei seemoo.tu-darmstadt.de: .de und tu-darmstadt sind High Order) & Lokaler Hostname, vom Administrator vergeben, z.B. \texttt{www}, \texttt{cms-sip02} (\enquote{www} ist Low Order, da spezifischer Host in der Domain)\\
+            \fatsf{IP-Adresse} & Netzwerkteil (Präfix), vergeben von ICANN, Regionalen Internetregistern (RIR) oder ISPs (z.B. bei 130.83.47.181 ist 130.83 das Netzwerk) & Host-Teil der IP-Adresse, einem Gerät im Netzwerk zugewiesen (z.B. per DHCP oder manuell) (z.B. 47.181 ist Low Order)\\
+            \fatsf{MAC-Adresse} & Herstellerkennung (Organizationally Unique Identifier, OUI), 24 Bits von IEEE an Hersteller vergeben (z.B. 00-15-C5 gehört z.B. zu IBM, Apple) & Gerätespezifische Schinittstellenkennung, 24 Bits, vom Hersteller vergeben (z.B. 49-04-A9 ist Low Order für die Netzwerkkarte)\\
+            \bottomrule 
+        \end{tabular}
+    \end{table}
+\end{enumerate}
+\subsubsection*{ICANN (Internet Corporation for Assigned Names and Numbers)}
+\begin{itemize}
+    \item \fatsf{ICANN} ist eine \fatsf{nicht-kommerzielle Organisation}, die weltweit zentrale Aufgaben für das Funktionieren des Internets übernimmt
+    \item \fatsf{Hauptaufgaben von ICANN:}
+    \begin{enumerate}
+        \item \fatsf{Domain Name System (DNS) verwalten:}\\
+        ICANN koordiniert die Vergabe von Domainnamen (z.B. .com, .org, .de) und überwacht die sogenannten \fatsf{Top-Level-Domains (TLDs)}
+        \item \fatsf{Zuteilung von IP-Adressen:}\\
+        Sie delegiert IP-Adressblöcke anregionale Organisationen (wie RIPE für Europa), die diese weiter an Provider und Unternehmen vergeben
+        \item \fatsf{Verwaltung von Root-Servern:}\\
+        ICANN verwaletet zusammen mit anderen Organisationen das Root-Server-System des Internets, das die Grundlage für DNS-Anfragen ist
+        \item  \fatsf{Zuständigkeit für Protokollparameter:}\\
+        In Zusammenarbeit mit der \fatsf{IETF (Internet Engineering Task Force)} sorgt ICANN für die Koordination technischer Standards und Protokollnummern
+    \end{enumerate}
+\end{itemize}
+\subsubsection*{RIR (Regional Internet Registry)}
+\begin{itemize}
+    \item Ein RIR ist eine Organisation, die im Auftrag von \fatsf{ICANN} IP-Adressen und autonome Systemnummern (\fatsf{ASNs}) in einer bestimmten geographischen Region verwaltet und zuteilt
+    \item \fatsf{Die 5 RIRs weltweit:}
+    \begin{table}[H]
+        \centering
+        \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+        \renewcommand{\arraystretch}{1.2}
+        \begin{tabular}{ll}
+            \toprule
+            \fatsf{Region} & \fatsf{RIR-Name}\\
+            \midrule
+            Europa, Naher Osten, Zentralasien & RIPE NCC\\
+            Nordamerika & ARIN\\
+            Lateinamerika \& Karibik & LACNIC\\
+            Afrika & AFRINIC\\
+            Asien-Pazifik & APNIC\\
+            \bottomrule 
+        \end{tabular}
+    \end{table}
+    \item \fatsf{Hauptaufgaben eines RIR:}
+    \begin{enumerate}
+        \item \fatsf{Zuteilung von IP-Adressen} (IPv4 \& IPv6) und \fatsf{AS-Nummern} an Internetdienstanbieter (ISPs), Unternehmne, Universitäten usw.
+        \item \fatsf{Führen öffentlicher Datenbanken}, um festzuhalten, wem welche IP-Adressen gehören (z.B. für Whois-Abfragen)
+        \item \fatsf{Förderung technischer Standards}, Schulungen, Sicherheit und verantwortungsvoll IP-Nutzung
+        \item \fatsf{Koordination mit ICANN} und anderen RIRs, um globale Adresspolitik umzusetzen
+    \end{enumerate}
+    \item \fatsf{Beispiel:}\\
+    Wenn z.B. ein Internetprovider in Deutschland neue IP-Adressen braucht, beantragt er sie bei \fatsf{RIPE NCC}
+\end{itemize}
+\subsubsection*{Implementing DNS: Alte Methode (Hosts-Datei)}
+\begin{itemize}
+    \item \fatsf{Was:}\\
+    Eine lokale Datei (\texttt{/etc/hosts} auf Unix, \texttt{$C:\textbackslash \cdots \textbackslash hosts$} auf Windows) enthält Zuordnungen von Hostnamen zu IP-Adressen
+    \item \fatsf{Wie:}\\
+    Bevor DNS befragt wird, prüft das System diese Datei - findet es einen Eintrag, wird die IP direkt verwendet
+    \item \fatsf{Früher:}\\
+    War notwendig, als das Internet noch klein war. Alle Hosts mussten ihre Datei manuell aktuell halten
+    \item \fatsf{Warum heute ungeeignet:}
+    \begin{itemize}
+        \item Nicht skalierbar (zu viele Hosts)
+        \item Keine automatische Aktualisierung
+        \item Sicherheitsrisiken (manipulierbar)
+        \item Fehleranfällig
+    \end{itemize}
+    \item \fatsf{Heute genutzt für:}
+    \begin{itemize}
+        \item Lokale Tests
+        \item Webseiten blockieren
+        \item Entwicklung ohne DNS
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Warum kein zentrales DNS?}
+\begin{itemize}
+    \item DNS ist absichtlich dezentral aufgebaut:
+    \begin{itemize}
+        \item Skalierbarkeit: Ein zentrales System wäre überlastet
+        \item Ausfallsicherheit: Single Point of Failure (SPOF) wird vermieden
+        \item Verwaltungshoheit: Jede Organisation kann eigene DNS-Einträge verwalten
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Welche Arten von DNS-Einträge (Resource Records) gibt es?}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{Typ} & \fatsf{Beschreibung}\\
+        \midrule
+        A & IPv4-Adresse\\
+        AAAA & IPv6-Adresse\\
+        CNAME & Alias auf anderen Hostnamen\\
+        MX & Mailserver (Mail eXchanger)\\
+        NS & Nameserver für eine Domain\\
+        TXT & Freitext - heute z.B. für SPF, DKIM etc.\\
+        SOA & Informationen über Zone-Verwaltung\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Aufbau eines DNS Resource Records (RR):}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Chapter_3_Images/DNS on the Wire.jpeg}
+\end{figure}
+\begin{itemize}
+    \item \fatsf{TTL:} Time To Live in Sekunden, wie lange der RR im Cache bleibt
+    \item \fatsf{Class:} Klasse des RR, meist IN für Internet
+    \item \fatsf{RL: RD LENGTH:} Länge der darauffolgenden RDATA in Bytes
+    \item \fatsf{RDATA:} Daten des RR, z.B. IP-Adresse für A, Mailserver für MX
+\end{itemize}
+\subsubsection*{Wie funktioniert eine DNS-Anfrage?}
+\begin{enumerate}
+    \item Du gibst eine Domain im Browser ein
+    \item Der \fatsf{Stub Resolver} deines Betriebssystems schickt die Anfrage an den \fatsf{rekursiven Resolver}
+    \item Der rekursive Resolver sucht die IP-Adresse, indem er verschiedene DNS-Server abfragt
+    \item Er holt sich die Antwort vom \fatsf{autoritativen DNS-Server} der jeweiligen Domain
+    \item Der rekursive Resolver speichert die Antwort im Cache für spätere Anfragen
+    \item Die IP-Adresse wird an den Stub Resolver zurückgegeben
+    \item Dein Computer kann die Webseite jetzt mit der IP-Adresse erreichen
+\end{enumerate}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Chapter_3_Images/DNS query example.jpeg}
+\end{figure}
+\subsubsection*{DNS und Sicherheit}
+\begin{itemize}
+    \item \fatsf{DNS ist essentiell} für das Internet, weil es Domain-Namen in IP-Adressen übersetzt. Ohne DNS funktionieren viele Dienste nicht
+    \item Ein Ausfall von DNS (z.B. durch falsches Routing wie bei Facebook 2021) kann ganze Webseiten lahmlegen
+    \item DNS betrifft wichtige Sicherheitsaspekte:
+    \begin{itemize}
+        \item \fatsf{Vertraulichkeit:} DNS-Anfragen verraten, welche Seiten Nutzer besuchen
+        \item \fatsf{Integrität:} Manipulierte DNS-Daten können Nutzer zu falschen Seiten umleiten
+        \item \fatsf{Verfügbarkeit:} Wenn DNS nicht funktioniert oder blockiert wird, sind Webseiten nicht erreichbar
+    \end{itemize}
+    \item DNS ist oft ungeschützt und anfällig für Überwachung, Manipulation und Zensur
+\end{itemize}

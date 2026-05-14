@@ -1,0 +1,977 @@
+\section{Transport Layer}
+\subsection{Connection Control}
+\subsubsection*{Grundidee}
+In Netzwerken gibt es \fatsf{zwei Arten von Diensten:}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lll}
+        \toprule
+        \fatsf{Art} & \fatsf{Erklärung} & \fatsf{Besipiel (Internet)}\\
+        \midrule
+        \fatsf{Connection-oriented} (COTS) & Verbindungsaufbau vor dem Datentransfer & \fatsf{TCP} (z.B. bei Web, E-Mail)\\
+        \fatsf{Connectionless} (CLNS) & Direkter Versand ohne Verbindung & \fatsf{UDP} (z.B. bei VoIP, DNS)\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+Im folgenden Fokus: \fatsf{Connection-oriented Transport Services (COTS)}, wie sie z.B. bei TCP verwendet werden
+\subsubsection*{Drei Phasen einer Verbindung (OSI-Terminologie)}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lp{5cm}p{8cm}}
+        \toprule
+        \fatsf{Phase} & \fatsf{Beschreibung} & \fatsf{OSI Primitive (Beispiel)}\\
+        \midrule
+        \fatsf{1.Connect (Aufbau)} & Eine Verbindung wird hergestellt & T-Connect.Request, T-Connect.Indication, T-Connect.Response, T-Connect.Confirmation\\
+        \fatsf{2. Data (Transofer)} & Daten werden zwischen Endsystemen übertragen & T-Data.Request, T-Data.Indication\\
+        \fatsf{3. Disconnect (Abbau)} & Die Verbindung wird ordentlich beendet & T-Disconnect.Request, T-Disconnect.Indication\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Transport-Verbindung: Beteiligte}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter_4_Images/Transport ConnectiSystem Connectivity.jpeg}
+\end{figure}
+Ein \fatsf{SAP (Service Access Point)} ist ein \fatsf{logischer Zugangspunkt}, über den eine Schicht \fatsf{einen Dienst} von der \fatsf{darunterliegenden Schicht} anfordert
+\subsubsection*{Service-Primitives (OSI-Sicht)}
+Diese sind \fatsf{abstrakte Befehle}, die zwischen Schichten ausgetauscht werden, um Dienste zu nutzen\\
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Chapter_4_Images/Example Run.jpeg}
+\end{figure}
+\fatsf{Phase 1: Verbindung aufbauen (T-Connect)}
+\begin{enumerate}
+    \item \fatsf{T-Connect.Request}
+    \begin{itemize}
+        \item Wer? $\rightarrow$ Client (aktive Seite)
+        \item Richtung $\rightarrow$ vom Transport Service User an die Transport-Schicht
+        \item Bedeutung:
+        \begin{itemize}
+            \item Der Client sagt: \enquote{Ich möchte eine Verbindung zu einem bestimmten Ziel aufbauen}
+        \end{itemize}
+        \item \fatsf{Parameter:}
+        \begin{itemize}
+            \item \texttt{Destination Address:} z.B. IP-Adresse + Port des Servers (Zielanwendung)
+            \item \texttt{Source Address:} z.B. IP-Adresse + Port des Clients (eigene Anwendung)
+        \end{itemize}
+    \end{itemize}
+    \item \fatsf{T-Connect.Indication}
+    \begin{itemize}
+        \item Wer? $\rightarrow$ Server (passive Seite), ausgelöst durch Transport-Schicht
+        \item Richtung $\rightarrow$ von Transport-Schicht an die Server-Anwendung
+        \item Die Transport-Schicht informiert die Server-Anwendung: \enquote{Hey, da möchte jemand mit dir eine Verbindung aufbauen!}
+        \item \fatsf{Wichtig:}
+        \begin{itemize}
+            \item \fatsf{Asynchron} - der Server \enquote{lauscht} mit einem listen()-Mechanismus
+            \item Das passiert nicht durch aktiven Aufruf des Servers, sondern als \fatsf{Indication (Meldung)}
+        \end{itemize}
+    \end{itemize}
+    \item \fatsf{T-Connect.Response}
+    \begin{itemize}
+        \item Wer? $\rightarrow$ Server (passive Seite)
+        \item Richtung $\rightarrow$ von Server-Anwendung an Transport-Schicht
+        \item Bedeutung:
+        \begin{itemize}
+            \item Der Server sagt: \enquote{Ja, ich akzeptiere die Verbindung}
+        \end{itemize}
+        \item Parameter:
+        \begin{itemize}
+            \item \texttt{Responding Address:} Adresse des Servers (kann benutzt werden, um Verbindung zu bestätigen und zu identifizieren)
+        \end{itemize}
+    \end{itemize}
+    \item \fatsf{T-Connect.Confirmation}
+    \begin{itemize}
+        \item Wer? $\rightarrow$ Client (aktive Seite), ausgelöst durch Transport-Schicht
+        \item Richtung $\rightarrow$ von Transport-Schicht an die Client-Anwendung
+        \item Bedeutung:
+        \begin{itemize}
+            \item Die Transport-Schicht bestätigt dem Client: \enquote{Verbindung ist aufgebaut}
+        \end{itemize}
+        \item Optionaler Parameter:
+        \begin{itemize}
+            \item Responding Address: Adresse des Servers, um finale Details zu bestätigen
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+\subsubsection*{Datenübertragung - T-Data}
+\begin{itemize}
+    \item \fatsf{Merkmale:}
+    \begin{itemize}
+        \item \fatsf{Unconfirmed service:} Es wird \fatsf{kein explizites Bestätigungs-Primitive (ACK)} auf der Service-Ebene gesendet
+        \item Trotzdem: \fatsf{Das Protokoll (z.B. TCP)} sendet \fatsf{ACKs intern!}
+    \end{itemize}
+    \item \fatsf{Primitives:}
+    \begin{itemize}
+        \item T-Data.Request (userdata) - vom Sender aufgerufen
+        \item T-Data.Indication (userdata) - beim Empfänger ausgelöst
+    \end{itemize}
+\end{itemize}
+\clearpage
+\subsubsection*{Verbindungsabbau - T-Disconnect}
+Wieder ein 2-Wege-Prozess:
+\begin{grayInfoBox}
+    Client: T-Disconnect.Request\\
+    Server: T-Disconnect.Indication
+\end{grayInfoBox}
+Das entspricht dem TCP \texttt{FIN}/\texttt{ACK}-Mechanismus, also:
+\begin{itemize}
+    \item Ein Ende sendet \texttt{FIN}
+    \item Das andere bestätigt mit \texttt{ACK}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter_4_Images/Connection Release.jpeg}
+\end{figure}
+\subsubsection*{Zustandsdiagramm für einen Transport Service Access Point}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter_4_Images/State Diagram.jpeg}
+\end{figure}
+\subsubsection*{Beispiel: TCP-Fall durchspielen (vereinfacht)}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{llll}
+        \toprule
+        \fatsf{Phrase} & \fatsf{Zustand} & \fatsf{Service Primitive} & \fatsf{Bemerkung}\\
+        \midrule
+        Client startet & $1 \rightarrow 2$ & \texttt{T-Connect.req} & TCP sendet SYN\\
+        Server erhält Anfrage & $1 \rightarrow 3$ & \texttt{T-Connect.ind} & TCP empfängt SYN\\
+        Server antwortet & $3 \rightarrow 4$ & \texttt{T-Connect.rsp} & TCP sendet SYN+ACK\\
+        Client bestätigt & $2 \rightarrow 4$ & \texttt{T-Connect.cnf} & TCP empfängt SYN+ACK + sendet ACK\\
+        Beide senden Daten & 4 & \texttt{T-Data.req/ind} & TCP-Transfer läuft\\
+        Verbindung wird beendet & $4 \rightarrow 1$ & \texttt{T-Disconnect.req/ind} & TCP sendet FIN, bekommt FIN\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Errors during Connection Establishment}
+Beim Aufbau einer Verbindung (Phrase: Connection Establishment) werden zwischen zwei Endpunkten \fatsf{Kontrollnachrichten} (TPDUs - Transport Protocol Data Units) ausgetauscht. Die wichtigsten:
+\begin{itemize}
+    \item \fatsf{CR} = Connection Request $\rightarrow$ vom Client gesendet
+    \item \fatsf{CC} = Connection Confirm $\rightarrow$ vom Server gesendet
+\end{itemize}
+Wenn dabei Fehler passieren (z.B. Nachrichten gehen verloren oder werden doppelt empfangen), kann es zu \fatsf{Problemen im Verbindungsaufbau} kommen
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter_4_Images/Errors during Connection Establishment.jpeg}
+\end{figure}
+\subsubsection*{Fehlersituationen im Detail}
+\begin{enumerate}
+    \item \fatsf{Verlust von CR oder CC (Nachricht kommt nie an)}
+    \begin{itemize}
+        \item \texttt{T-Connect.req} $\rightarrow$ CR gesendet
+        \item \fatsf{CR kommt beim Server nicht an $\rightarrow$ Server reagiert nicht}
+        \item Lösung: \fatsf{Client startet nach Timeout neu}
+    \end{itemize}
+    \item \fatsf{Deppelte TPDUs (z.B. durch Netzwerkprobleme)}
+    \begin{itemize}
+        \item CR oder CC wird \fatsf{mehrmals empfangen}, z.B. durch Wiederholung nach Timeout
+    \end{itemize}
+    \fatsf{Beispiel:} 
+    \begin{itemize}
+        \item CR wird vom Client gesendet
+        \item Server empfängt CR $\rightarrow$ sendet CC
+        \item CC kommt beim Client nicht an $\rightarrow$ Client \fatsf{wiederholt} CR
+        \item Server empfängt CR \fatsf{ein zweites Mal $\rightarrow$ nochmals} \texttt{T-connect.ind} \fatsf{an Anwendung}
+    \end{itemize}
+    \fatsf{Problem:} Anwendung bekommt zweimal die gleiche Verbindungsanfrage! Das darf \fatsf{nicht passieren}\\
+    Die Anwendungsschicht \fatsf{soll vor diesen Fehlern geschützt} werden. Solche Duplikate sollen vom \fatsf{Transportprotokoll abgefangen} werden, \fatsf{bevor} sie zu Anwendung gelangen
+\end{enumerate}
+\subsubsection*{Three-Way Handshake}
+\begin{itemize}
+    \item \fatsf{Zweck:}
+    \begin{itemize}
+        \item Sicherer Verbindungsaufbau im Transport Layer (z.B. TCP)
+        \item Verhindert, dass Verbindungen inkonsistent oder fehlerhaft aufgebaut werden
+    \end{itemize}
+    \item \fatsf{Ablauf:}
+    \begin{enumerate}
+        \item \fatsf{CR} (Connection Request) vom Client $\rightarrow$ Server
+        \item \fatsf{CC} (Connection Confirm) vom Server $\rightarrow$ Client
+        \item \fatsf{ACK} oder erste \fatsf{DT} (Data Transfer) vom Client $\rightarrow$ Server
+    \end{enumerate}
+    \fatsf{Verbindung ist erst nach allen 3 Schritten offiziell etabliert}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Chapter_4_Images/Three-Way Handshake.jpeg}
+\end{figure}
+\subsubsection*{Problem: Alte oder doppelte Pakete}
+\begin{itemize}
+    \item Netzwerk kann alte Verbindungsanfragen (CR/CC) später erneut zustellen (sog. Replay-Angriffe)
+    \item Gefahr: eine \enquote{vergangene} Verbindung wird fälschich als neu interpretiert
+\end{itemize}
+\subsubsection*{Lösung: Sequence Numbers}
+\begin{itemize}
+    \item Jeder Teilnehmer sendet \fatsf{eine zufällige Nummer (SeqNum)} in CR/CC
+    \item Die Gegenseite muss diese Nummer korrekt zurückspiegeln
+    \item Verbindung wird nur akzeptiert, wenn die SeqNums \fatsf{zeitlich gültig und korrekt} sind
+\end{itemize}
+\fatsf{Verhindert den Aufbau auf Basis alter, duplizierter Nachrichten}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.3\linewidth]{Chapter_4_Images/Sequence numbers.jpeg}
+\end{figure}
+\subsubsection*{Zusätzlicher Schutz}
+\begin{itemize}
+    \item \fatsf{Sequence Numbers dürfen sich nicht wiederholen}, solange alte Pakete noch im Netz sein könnten
+    \begin{itemize}
+        \item $\rightarrow$ Zeit > \enquote{Packet Lifetime} (oft durch \texttt{TTL} im IP-Layer begrenzt)
+    \end{itemize}
+    \item Bei sehr schnellen Verbindungen (z.B. Gbps):\\
+    $\rightarrow$ \fatsf{Timestamps} zusätzlich verwenden
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Chapter_4_Images/Old duplicate.jpeg}
+\end{figure}
+\clearpage
+\subsubsection*{Connection Rejection (Verbindungsablehnung)}
+Wenn ein Transportdienst \fatsf{eine eingehende Verbindungsanfrage (CR) nicht akzeptieren} will, wird sie \fatsf{aktiv zurückgewiesen}
+\begin{itemize}
+    \item \fatsf{Wie funktioniert das?}
+    \begin{itemize}
+        \item \fatsf{Client sendet:} \texttt{T-Connect.req} (Verbindungsaufbau starten)
+        \item \fatsf{Server lehnt ab:} mit \texttt{T-Disconnect.ind} und einem \fatsf{DR} (Disconnect Request TPDU)
+        \item Danach folgt evtl. ein \fatsf{DC} (Disconnect Confirm TPDU) zur Bestätigung
+    \end{itemize}
+    \item \fatsf{Mögliche Gründe für Ablehnung:}
+    \begin{itemize}
+        \item Transportdienstnutzer will Verbindung nicht (z.B. Anwendung sagt \enquote{Nein})
+        \item Dienstanforderungen (z.B. QoS) können nicht erfüllt werden
+    \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Chapter_4_Images/Connection Rejection.jpeg}
+\end{figure}
+\subsubsection*{Connection Release (Verbindungsabbau)}
+\begin{itemize}
+    \item \fatsf{Ziel:}
+    \begin{itemize}
+        \item Verbindung \fatsf{kontrolliert beenden}, nachdem \fatsf{alle Daten sicher übertragen werden}
+    \end{itemize}
+    \item \fatsf{Empfohlener Ablauf:}
+    \begin{enumerate}
+        \item Warten, bis alle gesendeten Daten bestätigt (ACKed) wurden
+        \item Dann erst: Verbindung schließen
+    \end{enumerate}
+    \item \fatsf{Varianten:}
+    \begin{itemize}
+        \item \fatsf{Explizit:} durch \fatsf{DR/DC} (Disconnect Request + Confirm TPDU)
+        \item \fatsf{Implizit:} Einfach durch Schließen der Verbindung im darunterliegenden Netzwerk
+    \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter_4_Images/Connection Release 2.jpeg}
+\end{figure}
+\subsubsection*{Problem beim Verbindungsabbau}
+Wie kannst du dir sicher sein, dass dein Kommunikationsparter \fatsf{weiß}, dass \fatsf{du weißt}, dass \fatsf{er weiß}, dass alles angekommen ist?\\
+$\rightarrow$ Genau das ist das \fatsf{Two-Army-Problem!}
+\subsubsection*{Two-Army-Problem-Analogie}
+\begin{itemize}
+    \item Zwei Armeen wollen gleichzeitig angreifen, sonst verlieren sie
+    \item Sie schicken Boten zueinander - aber Boten können \fatsf{verloren} gehen
+    \item Sie wissen nie, ob die Nachricht \fatsf{wirklich angekommen} ist
+    \item Ergebnis: \fatsf{keine sichere Koordination möglich}, wenn Nachrichten verloren gehen können
+\end{itemize}
+\begin{itemize}
+    \item \fatsf{Gleiches Problem beim Connection Release!}
+    \item Transport Layer kann \fatsf{nicht sicher wissen}, ob wirklich beide Seiten bereit sind zu schließen
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Chapter_4_Images/Two Army Problem.jpeg}
+\end{figure}
+\subsubsection*{Praktische Lösung: 3-Way Handshake für Verbindungsabbau}
+\begin{enumerate}
+    \item Peer A sendet \fatsf{DR}
+    \item Peer B antwortet auch mit \fatsf{DR} (ggf. inkl. ACK)
+    \item A bestätigt, Verbindung kann geschlossen werden
+\end{enumerate}
+$\rightarrow$ Ist zwar \fatsf{100\% sicher}, aber:
+\begin{itemize}
+    \item In der Praxis funktioniert das \fatsf{gut genug}
+    \item \fatsf{Timer} und \fatsf{Wiederholungen} helfen bie verlorenen DR/ACK
+\end{itemize}
+\subsubsection*{Zusätzliche Problemfälle:}
+\begin{itemize}
+    \item \fatsf{ACK verloren:} Timer läuft aus $\rightarrow$ erneutes DR senden
+    \item \fatsf{2. DR verloren:} ebenfalls durch Timer abgefangen
+    \item Wenn \fatsf{beide nachrichten verloren:} Verbindung wird trotzdem nach Timeout abgebrochen
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Chapter_4_Images/Problem Cases for Connection Release.jpeg}
+\end{figure}
+\subsection{Flow Control}
+\fatsf{Flow Control} bedeutet, dass ein \fatsf{Sender daran gehindert wird}, zu viele Daten zu schnell an einen \fatsf{langsamen Empfänger} zu senden. Ziel: Den \fatsf{Empfänger vor Überlastung} zu schützen!
+\subsubsection*{Hintergrundproblem: Zuverlässige Übertragung ist schwer}
+Auch wenn Pakete zuverlässig zugestellt werden sollen, können viele Dinge schieflaufen:
+\begin{itemize}
+    \item Pakete gehen verloren (z.B. durch Überlastung oder Bitfehler)
+    \item Pakete kommen fehlerhaft an
+    \item Der Empfänger verarbeitet Daten langsamer, als sie ankommen
+\end{itemize}
+\subsubsection*{Lösungsidee: ACKs und Retransmission}
+Damit der Sender weiß, ob Daten korrekt ankamen:
+\begin{itemize}
+    \item Der Empfänger schickt ein \fatsf{ACK} (Bestätigung) für jedes empfangene Paket
+    \item Kommt kein ACK $\rightarrow$ Sender \fatsf{sendet Paket erneut} (Der Sender muss eine Kopie des Pakets behalten, bis er das ACK sicher erhalten hat - nur dann kann er es löschen)
+\end{itemize}
+\subsubsection*{Aber: Wie lange soll der Sender ein Paket speichern?}
+\begin{itemize}
+    \item Solange, bis er ein ACK erhält
+    \item Das braucht Speicher (= \fatsf{Buffer}) $\rightarrow$ Also \fatsf{nicht unbegrenzt machbar}
+\end{itemize}
+\subsubsection*{Flow Control - Warum wichtig?}
+\begin{itemize}
+    \item \fatsf{Problem:} Ein \fatsf{schneller Sender} kann einen \fatsf{langsamen Empfänger} überfordern, wenn er \fatsf{ungebremst Daten schickt}
+    \item \fatsf{Ziel:} Empfänger muss \fatsf{Sender bremsen können}, wenn sein \fatsf{Eingangspuffer (Buffer)} voll ist
+\end{itemize} 
+\subsubsection*{Wo wird Flow Control gemacht?}
+\begin{itemize}
+    \item \fatsf{Link Layer:} begrenzt Datenrate zwischen zwei direkt verbundenen Geräten
+    \item \fatsf{Transport Layer:} steuert den Datenfluss \fatsf{zwischen Anwendungen} auf verschiedenen Rechnern
+    \begin{itemize}
+        \item Komplizierter, da:
+        \begin{itemize}
+            \item TL-Pakete unterschiedlich groß sind
+            \item Anwendungen (z.B. Webserver) sehr unterschiedlich reagieren
+            \item Mehrere parallele Verbindungen gleichzeitig laufen können
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Buffer Management}
+Sender und Empfänger müssen mit \fatsf{Pufferplätzen} umgehen:
+\begin{itemize}
+    \item Der \fatsf{Empfänger} braucht Platz, um Pakete zwischenzuspeichern, bevor er sie verarbeitet
+    \item Der \fatsf{Sender} muss wissen, \fatsf{wie viel Platz beim Empfänger verfügbar ist}
+\end{itemize}
+\fatsf{Zwei Optionen:}
+\begin{enumerate}
+    \item \fatsf{Optimistische Annahme:} Empfänger verarbeitet Pakete sofort $\rightarrow$ unrealistisch
+    \item \fatsf{Guthabensystem (Credit-Based):}
+    \begin{itemize}
+        \item Empfänger sagt: \enquote{Ich habe noch \fatsf{X feie Buffer}}
+        \item Sender darf \fatsf{nur so viele neue Pakete schicken}, wie \fatsf{Credits} vorhanden sind
+    \end{itemize}
+    $\rightarrow$ So kann der Empfänger den \fatsf{Datenfluss kontrollieren}, ohne überlastet zu werden
+\end{enumerate}
+\subsubsection*{Wie kommuniziert der Empfänger seine Kapazität?}
+\begin{itemize}
+    \item \fatsf{Explizit:} \enquote{Ich habe gerade 4 freie Plätze}
+    \item \fatsf{Implizit:} Durch Ausbleiben von ACKs oder bestimmte TCP-Felder
+\end{itemize}
+\clearpage
+\subsubsection{Alternating Bit Protocol (ABP)}
+Das \fatsf{ABP} ist ein einfaches Protokoll zur \fatsf{sicheren (zuverlässigen)} und \fatsf{geordneten Datenübertragung} über ein unsicheres Netzwerk - also ein \fatsf{Sotp-and-Wait-Protokoll mit Fehlererkennung}
+\subsubsection*{Grundidee}
+\begin{enumerate}
+    \item Der \fatsf{Sender} sendet \fatsf{ein Paket mit einer Bit-Nummer} (entweder 0 oder 1)
+    \item Der \fatsf{Empfänger} erhält das Paket und schickt ein \fatsf{ACK mit der gleichen Bit-Nummer} zurück
+    \item Der Sender wartet auf das ACK, \fatsf{bevor} er das nächste Paket sendet - das nächste mit \fatsf{wechselndem Bit} (0 $\leftrightarrow$ 1)
+\end{enumerate}
+Wenn kein ACK rechtzeitig kommt (Timeout), \fatsf{wird dasselbe Paket nochmal gesendet}
+\subsubsection*{Warum nur 1 Bit?}
+Weil immer \fatsf{nur ein Paket gleichzeitig} unterwegs ist. Das Bit dient zur Erkennung von \fatsf{Doppelübertragungen}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{p{7cm}p{8cm}}
+        \toprule
+        \fatsf{Situation} & \fatsf{Erklärung}\\
+        \midrule
+        Paket kommt \fatsf{neu} $\rightarrow$ Bitnummer \fatsf{neu} & $\rightarrow$ Empfänger verarbeitet \& bestätigt\\
+        Paket kommt \fatsf{doppelt} $\rightarrow$ Bitnummer wie beim letzten Mal & $\rightarrow$ Empfänger \fatsf{verarbeitet es nicht nochmal} und schickt \fatsf{ACK (Bit = Bitnummer)}\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\subsubsection*{Ist ABP effizient?}
+Leider \fatsf{nein} - und das ist ein zentrales Lernziel:
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Chapter_4_Images/Rechenbeispiel.jpeg}
+\end{figure}
+\begin{itemize}
+    \item \fatsf{Entfernung:} New York $\leftrightarrow$ Frankfuhrt = 6.200 km
+    \item \fatsf{Lichgeschwindigkeit in Glasfaser:} 300.000 km/s
+    \item \fatsf{Propagation through the medium:}
+    \[
+        T_{prop} = \frac{6200km}{300000\frac{km}{s}} = 20ms
+    \]
+    \item \fatsf{Transmission Time:} 
+    \[
+        T_{trans} = \frac{8KBit}{10^{9}\frac{Bit}{s}} = 8 \mu s \text{ (assume 1 $\mu s$ for ACK)}
+    \]
+    \item \fatsf{Delay until ACK of packet received:} 40009 ms
+    \item \fatsf{Utilization of medium:} 
+    \[
+        U_{Sender} = \frac{0,008}{40,009} = 0.0002
+    \]
+    \item And effectively around 25 kByte/s (in a 1 GBit/s medium)
+\end{itemize}
+Also:
+\begin{itemize}
+    \item Extrem ineffizient auf langen Strecken und bei hoher Bandbreite
+    \item Aber einfach und sicher für kurze Distanzen (z.B. Embedded-Bereich)
+\end{itemize}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{lp{4cm}p{4cm}p{4cm}}
+        \toprule
+        \fatsf{Konzept} & \fatsf{Was passiert?} & \fatsf{Vorteil} & \fatsf{Nachteil}\\
+        \midrule
+        Stop/Continue Flow Control & Empfänger schickt Stop/Continue Nachrichten & Einfach zu verstehen & Verzögerung kann Overflow verursachen\\
+        Rate-based Flow Control & Empfänger gibt max. Datenrate an & Geringer Overhead, \enquote{smooth} & Kein Empfangs-ACK, Fehler schwierig\\
+        Credit-Based Flow Control & Empfänger gibt explizites Guthaben (Pakete senden erlaubt) & Effizient, kombiniert mit ACKs & Komplexer, benötigt Fehlerkontrolle\\
+        Sliding Window & Sender darf mehrere Pakete im Fenster senden & Sehr effizient, verbreitet & Verwaltung von Fenstergröße nötig\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\clearpage
+\subsection{Error Control}
+\fatsf{Problem:} Nicht alle Übertragungsfehler werden erkannt
+\begin{itemize}
+    \item Bei Datenübertragungen können \fatsf{Bitfehler} auftreten (z.B. durch elektromagnetische Störungen)
+    \item Man verwendet \fatsf{Prüfsummen (Checksums)}, um solche Fehler zu erkennen
+    \item Aber: \fatsf{Es gibt immer ein Restrisiko}, dass ein Fehler \fatsf{nicht entdeckt wird}, wenn die falschen Daten zufälltig dieselbe Prüfsumme haben $\Rightarrow$ \fatsf{residual error}
+\end{itemize}
+\fatsf{Verhalten auf Empfängerseite bei erkannten Fehlern:}
+\begin{itemize}
+    \item Wenn ein Fehler erkannt wird (z.B. durch Prüfsumme in Layer 2 oder Layer 4)
+    \begin{itemize}
+        \item \fatsf{In den meisten Protokollen reagiert der Empfänger NICHT aktiv}
+        \item Das fehlerhafte Paket wird \fatsf{einfach verworfen (drop)}
+    \end{itemize}
+    \item \fatsf{Warum wird einfach verworfen?}
+    \begin{itemize}
+        \item Gefahr: \fatsf{Ein fehlerfhaftes Headerfeld} (z.B. Zieladresse) könnte das Paket \fatsf{in eine falsche Richtung} weiterleiten $\Rightarrow$ \fatsf{besser verwerfen}
+        \item Es gibt \fatsf{meist keine getrennte Prüfsumme für Header und Nutzdaten}, deshalb ist der Header nicht separat überprüfbar
+    \end{itemize}
+\end{itemize}
+\fatsf{Besser wäre: Empfänger meldet Fehler zurück $\rightarrow
+$ Negative ACK (NAK)}
+\begin{itemize}
+    \item Beispiel: \enquote{Ich habe ein fehlerhaftes oder fehlendes Paket erkannt, bitte sende es erneut}
+    \item Vorteil:
+    \begin{itemize}
+        \item Spart Zeit, weil der Sender \fatsf{nicht auf Timeout warten muss}
+        \item Besonders bei \fatsf{verzögerungsanfälligen Netzwerken (Internet)} sinnvoll
+    \end{itemize}
+    \item \fatsf{Aber ist das möglich, wenn der Empfänger das Paket einfach verwirft}
+    \begin{itemize}
+        \item Ja, \fatsf{indirekt}:
+        \begin{itemize}
+            \item Wenn das \fatsf{nächste Paket} empfängen wird, erkennt der Empfänger:
+            \begin{itemize}
+                \item \enquote{Moment, das Paket ist \fatsf{außer der Reihenfolge!}} $\Rightarrow$ Fehler erkannt!
+                \item So kann er einen \fatsf{NAK} senden oder auf das verlorene Paket hinweisen
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\fatsf{Reihenfolgenummern sind unerlässlich}
+\begin{itemize}
+    \item Um:
+    \begin{itemize}
+        \item \fatsf{Verlorene Pakete zu erkennen}
+        \item Pakete \fatsf{korrekt zuzuordnen}
+        \item Daten beim Empfänger wieder \fatsf{in richtige Reihenfolge zu bringen}
+        \item In \fatsf{ACKs/NAKs referenzieren} zu können
+    \end{itemize}
+    \item Besonders kritisch bei \fatsf{IP}, da Pakete \fatsf{nicht zwingend in Reihenfolge} ankommen
+\end{itemize}
+\fatsf{Letzter Ausweg: Timeout beim Sender}
+\begin{itemize}
+    \item Wenn keine Bestätigung für ein Paket kommt $\Rightarrow$ \fatsf{Sender wartet Timeout ab} und sendet \fatsf{erneut}
+    \item Wichtig:
+    \begin{itemize}
+        \item Timeout-Dauer ist entscheidend: \fatsf{zu kurz $\rightarrow$ unnötige Wiederholungen, zu lang $\rightarrow$ unnötige Verzögerungen}
+    \end{itemize}
+\end{itemize}
+\subsubsection{Automatic Repeat reQuest (ARQ)}
+ARQ = Protokollmechanisumus, bei dem der \fatsf{Sender verlorene oder fehlerhafte Pakete erneut sendet}
+\begin{enumerate}
+    \item \fatsf{Typ 1: Sotp-And-Wait ARQ}
+    \begin{itemize}
+        \item Nach jedem Paket wartet der Sender auf ein ACK
+        \item Nur \fatsf{ein Paket gleichzeitig in der \enquote{Luft}}
+        \item \fatsf{Einfach}, aber \fatsf{sehr ineffizient bei langen Leitungen} (hohe RTT)
+        \item Siehe auch: \fatsf{Alternating Bit Protocol (ABP)}
+    \end{itemize}
+    \item \fatsf{Typ 2: Go-Back-N ARQ}
+    \begin{itemize}
+        \item Sender kann \fatsf{mehrere Pakete auf einmal} losschicken (Fenstertechnik)
+        \item Wenn ein Paket verloren geht oder fehlerhaft ist:
+        \begin{itemize}
+            \item Empfänger \fatsf{verwirft alle folgenden Pakete}, da sie \enquote{out of order} sind
+            \item Sender wird per Timeout oder NACK benachrichtigt und \fatsf{sendet alle ab dem fehlerhaften Paket erneut}
+        \end{itemize}
+        \item \fatsf{Warum?}
+        \begin{itemize}
+            \item Früher hatten viele Empfänger nur \fatsf{einen Pufferplatz} $\rightarrow$ konnten keine out-of-order Pakete speichern
+        \end{itemize}
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\linewidth]{Chapter_4_Images/Go-Back-N ARQ.jpeg}
+    \end{figure}
+    \clearpage
+    \item \fatsf{Typ 3: Selective Reject (Selective Repeat)}
+    \begin{itemize}
+        \item \fatsf{Effizienter:}
+        \begin{itemize}
+            \item Empfänger kann mehrere Pakete puffern
+            \item Nur das \fatsf{konkrete verlorene Paket wird erneut angefordert}
+            \item Sender muss gezielt \fatsf{nur das fehlende Paket erneut senden}
+            \item Vorteil:
+            \begin{itemize}
+                \item \fatsf{Weniger Overhead, bessere Bandbreitenausnutzung}
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.9\linewidth]{Chapter_4_Images/Selective Reject.jpeg}
+    \end{figure}
+\end{enumerate}
+\subsubsection*{Intermezzo: Wie macht es TCP?}
+\begin{itemize}
+    \item TCP arbeitet \fatsf{nicht mit Paketnummern}, sondern mit \fatsf{Bytenummern}
+    \begin{itemize}
+        \item Beispiel: Byte 513, Byte 769, ...
+    \end{itemize}
+    \item Das erlaubt eine \fatsf{feinere Steuerung} und \fatsf{Teilmengenbestätigung}
+    \item ABER: Moderne TCP-Implementierungen sind \fatsf{komplex}, da sie \fatsf{Abwärtskompatibilität} wahren müssen
+    \begin{itemize}
+        \item Deshalb kombinieren sie \fatsf{ACKs mit Bytenummern}, ggf. mit \fatsf{SACK (Selective ACKs)} für selektive Wiederholungen
+    \end{itemize}
+\end{itemize}
+\clearpage
+\subsection{Congestion Control}
+\subsubsection*{Grundidee: Wo entsteht Überlast (Congestion)?}
+Bei jeder Kommunikation im Internet sind \fatsf{mehrere Komponenten beteiligt:}
+\begin{enumerate}
+    \item \fatsf{Sender (Initiator)}
+    \item \fatsf{Netzwerk (Router, Switches, Leitungen etc.)}
+    \item \fatsf{Empfänger (Responder)}
+\end{enumerate}
+Überall dort kann ein \fatsf{Engpass (Bottleneck)} entstehen\\
+\subsubsection*{Drei mögliche Bottlenecks:}
+\begin{table}[H]
+    \centering
+    \rowcolors{2}{\thepagecolor}{fgcolor!10!\thepagecolor}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{ll}
+        \toprule
+        \fatsf{Am Empfänger} & Receiver kann nicht schnell genug lesen oder verarbeiten\\
+        \fatsf{Im Kommunikationskanal} & Leitung oder Router sind überlast $\rightarrow$ \fatsf{Netzüberlastung} entsteht\\
+        \fatsf{Am Sender (selten)} & Sender limitiert seine Rate selbst, z.B. bei Brandbreitenbegrenzung\\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Chapter_4_Images/Bottleneck.jpeg}
+\end{figure}
+\clearpage
+\subsubsection*{Was ist Congestion (Überlast)?}
+\begin{itemize}
+    \item \fatsf{Jedes Netzwerk} hat eine \fatsf{begrenzte Kapazität} (Daten pro Sekunde)
+    \item Wenn \fatsf{mehr Daten eingespeist} werden, als das Netzwerk verarbeiten kann, entsteht eine \fatsf{Überlastung}
+    \item Folge:
+    \begin{itemize}
+        \item \fatsf{Verzögerungen} (Delays)
+        \item \fatsf{Paketverluste} (Drops)
+        \item \fatsf{Ineffizienz}, da gleiche Pakete oft mehrmals übertragen werden müssen
+        \item \fatsf{Congestive Collapse:} Netzwerk ist aktiv, aber es kommt kaum Daten durch $\rightarrow$ total ineffizient
+    \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Chapter_4_Images/Congestion.jpeg}
+\end{figure}
+\clearpage
+\subsubsection*{Drei Szenarien zur Veranschaulichung}
+\begin{itemize}
+    \item \fatsf{Szenario 1 - Router mit unendlichem Puffer, keine Retransmission}
+    \begin{itemize}
+        \item Zwei Sender und zwei Empfänger kommunizieren über einen Router
+        \item Der Router hat \fatsf{unendlich große Puffer}, sodass \fatsf{keine Pakete verloren gehen}
+        \item Die \fatsf{eingehende Rate $\lambda_{in}$} kann die \fatsf{Ausgangskapazität C} des Routers überschreiten
+        \item Pakete stauen sich im Puffer, was zu \fatsf{wachsenden Verzögerungen} führt
+        \item Es entsteht \fatsf{Congestion durch Verzögerung}, nicht durch Verluste
+        \item Das Ergebnis: \fatsf{Maximale Dursatzrate C} wird erreicht, aber mit großen Latenzen
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Chapter_4_Images/Szenario 1 P1.jpeg}
+    \end{figure}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Chapter_4_Images/Szenario 1 P2.jpeg}
+    \end{figure}
+    \clearpage
+    \item \fatsf{Szenario 2 - Router mit begrenztem Puffer, mit Retransmission}
+    \begin{itemize}
+        \item Router hat \fatsf{begrenzten Pufferplatz}; bei Überlast werden Pakete \fatsf{verloren}
+        \item Sender erkennen verlorene Pakete (z.B. durch Timeout) und \fatsf{senden diese erneut} (Retransmission)
+        \item Die Wiederholungen erhöhen die eingehende Daterate $\lambda_{in}$ zusätzlich
+        \item Dadurch entsteht ein \fatsf{Teufelkreis: mehr Last $\rightarrow$ mehr Verluste $\rightarrow$ mehr Retransmissionen $\rightarrow$ noch mehr Last}
+        \item Ergebnis: \fatsf{hohe Verzögerungen, verminderte Effizienz}, und Gefahr von \fatsf{Congestion Collapse} trotz physikalischer Kapazitätsgrenze C
+    \end{itemize}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Chapter_4_Images/Szenario 2 P1.jpeg}
+    \end{figure}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=1\linewidth]{Chapter_4_Images/Szenario 2 P2.jpeg}
+    \end{figure}
+    \clearpage
+    \item \fatsf{Szenario 3: Mehrere Sender, Mehrhops und Retransmissionen}
+    \begin{enumerate}
+        \item \fatsf{Ausgangslage:}
+        \begin{itemize}
+            \item Mehrere Sender (z.B. 4 Hosts) senden gleichzeitig
+            \item Daten passieren mehrere Router (Multihop)
+            \item Router haben begrenzte Pufferkapazität
+        \end{itemize}
+        \item \fatsf{Problem:}
+        \begin{itemize}
+            \item Pakete gehen an Routern verloren, wenn Puffer voll sind
+            \item Sender erkennen Verluste erst nach Timeout und senden Pakete erneut (Retransmission)
+        \end{itemize}
+        \item \fatsf{Folge:}
+        \begin{itemize}
+            \item Retransmissionen erhöhen den Datenverkehr zusätzlich 
+            \item Mehr Last führt zu noch mehr Paketverlusten und Verzögerungen
+            \item Ressourcen (Bandbreite und Puffer) werden verschwendet
+            \item Gefahr von Congestion Collapse steigt
+        \end{itemize}
+        \item \fatsf{Herausforderung:}
+        \begin{itemize}
+            \item Staukontrolle ist schwierig, weil Überlast an verschiedenen Punkte entsteht
+            \item Kein garantierter Paketreihenfolge oder direkte Verlustmeldung
+        \end{itemize}
+    \end{enumerate}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Chapter_4_Images/Szenario 3 P1.jpeg}
+    \end{figure}
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.7\linewidth]{Chapter_4_Images/Szenario 3 P2.jpeg}
+    \end{figure}
+    \clearpage
+\end{itemize}
+\begin{itemize}
+    \item \fatsf{Warum ist Congestion Control nötig?}
+    \begin{itemize}
+        \item Verhindert Überlastungs-Kettenreaktionen (Snowball-Effekt)
+        \item Überlast führt zu Paketverlusten $\rightarrow$ erneute Sendungen $\rightarrow$ noch mehr Last $\rightarrow$ Zusammenbruch
+    \end{itemize}
+    \item \fatsf{Anpassung der Sendrate:}
+    \begin{itemize}
+        \item Sender passen ihre Rate an die aktuelle Kapazität des Netzwerks an
+        \item Komplex, da viele Router, Weiterleitungsstrategien und Nutzer beteiligt sind
+        \item Unterschied zu Flow Control: Flow Control ist lokal (Sender-Empfänger), Congestion Control betrifft das gesamte Netzwerk dazwischen
+    \end{itemize}
+    \item \fatsf{Ziele der Congestion Control:}
+    \begin{itemize}
+        \item Hohe Paketlieferung mit kurzen Verzögerungen
+        \item Schutz vor kollapsartiger Überlast
+        \item Faire Verteilung der Netzwerkressourcen auf alle Datenflüsse
+    \end{itemize}
+    \item \fatsf{Designoptionen:}
+    \begin{itemize}
+        \item \fatsf{Open Loop:} Vorab so gestaltet, dass Laufzeitkorrekturen nicht nötig sind
+        \item \fatsf{Closed Loop:} Laufzeit-Feedback zur Anpassung der Sendrate
+        \begin{itemize}
+            \item \fatsf{Explizites Feedback:} Netzwerk signalisiert Überlast direkt
+            \item \fatsf{Impliziertes Feedback:} Sender schließt aus Netzwerkverhalten (z.B. fehlende ACKs) auf Überlast
+        \end{itemize}
+    \end{itemize}
+    \item \fatsf{Beispiel:} TCP verwendet implizites Closed-Loop Feedback zur Steuerung der Sendrate
+\end{itemize}
+\subsubsection*{Mögliche Maßnahmen bei Überlastung}
+\begin{itemize}
+    \item \fatsf{Optionen zur Überlastvermeidung}
+    \begin{enumerate}
+        \item \fatsf{Kapazität erhöhen}
+        \begin{itemize}
+            \item Mehr Links oder Router hinzufügen
+            \item \fatsf{Aber:} In der Praxis kurzfristig kaum machbar - teuer und langsam
+        \end{itemize}
+        \item \fatsf{Reservierung \& Admission Control}
+        \begin{itemize}
+            \item Neue Datenflüsse nur zulassen, wenn noch genügend Kapazität vorhanden ist
+            \item \fatsf{Gilt vor allem für Leitungsvermittlung} (wie bei alten Telefonsystemen)
+            \item Funktioniert schlecht im Internet, da Informationen über den aktuellen Zustand selten verfügbar sind
+        \end{itemize}
+        \item \fatsf{Last reduzieren (feingranular)}
+        \begin{itemize}
+            \item Quellen verringern ihre Datenrate, \fatsf{ohne} die Verbindung zu beenden
+            \item Das funktioniert \fatsf{nur}, wenn sie \fatsf{Feedback} vom Netzwerk bekommen - z.B. durch verlorene Pakete $\rightarrow$ Closed-loop control
+        \end{itemize}
+    \end{enumerate}
+\end{itemize}
+\subsubsection*{Klassifikaiton von Maßnahmen}
+\begin{itemize}
+    \item \fatsf{Wo wird gesteuert?}
+    \begin{itemize}
+        \item \fatsf{Router-zentriert:} Router trifft Entscheidungen
+        \item \fatsf{Host-zentriert:} Endgeräte (Sender/Empfänger) treffen Entscheidungen
+        \begin{itemize}
+            \item Im Internet fast immer \fatsf{host-zentriert, außer beim Packet-Dropping}
+        \end{itemize}
+    \end{itemize}
+    \item \fatsf{Wie wird die zulässige Datenmenge beschrieben?}
+    \begin{itemize}
+        \item \fatsf{Window-basiert (wie TCP):}
+        \begin{itemize}
+            \item Der Sender darf nur ein bestimmtes Fenster an Bytes senden, ohne ACK
+        \end{itemize}
+        \item \fatsf{Rate-basiert:}
+        \begin{itemize}
+            \item Eine feste Datenrate (z.B. 100KB/s)
+        \end{itemize}
+        \item Weitere, seltenere Methoden: z.B. \fatsf{Credit-based}
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Was tun, wenn der Router voll ist?}
+\begin{itemize}
+    \item \fatsf{Ein neues Paket kommt an, aber der Puffer sit voll}
+    \begin{itemize}
+        \item Muss \fatsf{ein Paket gedroppt werden} - welches?
+        \begin{itemize}
+            \item \fatsf{Option 1: Drop Tail}
+            \begin{itemize}
+                \item Das neue Paket wird einfach verworfen
+                \item Vorteil: alte Pakete sind oft \enquote{wertvoller} (z.B. bei Go-Back-N)
+                \item \fatsf{Nachteil:} Gefahr der Synchronisation - alle Sender reduzieren gleichzeitig
+            \end{itemize}
+            \item \fatsf{Option 2: Ein altes Paket verwerfen}
+            \begin{itemize}
+                \item Besonders sinnvoll bei \fatsf{Multimedia-Streams} $\rightarrow$ neue Daten wichtiger
+                \item Oder gezielt ein Paket aus dem gliechen Datenstrom löschen
+                \item \fatsf{Aber:} schwer umzusetzen (Overhead)
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Paketverlust = implizites Feedback}
+\begin{itemize}
+    \item \fatsf{Paketverlust als Signal}
+    \begin{itemize}
+        \item Wenn ein Paket \fatsf{verloren geht}, kann der Sender (z.B. TCP) das durch fehlendes ACK erkennen
+        \item Reaktion: \fatsf{Sende-Rate verringern}
+        \item \fatsf{Annahme dabei:} Verluste = Überlast (gilt in drahtgebundenen Netzen oft, aber nicht immer in drahtlosen)
+    \end{itemize}
+    \item \fatsf{Problem:}
+    \begin{itemize}
+        \item In drahtlosen Netzwerken: viele Verluste \fatsf{ohne Überlast}, z.B. durch Interferenzen
+        \item Lösung: Drahtlose Hops absichern (z.B. durch Link-Layer-Retransmissions)
+    \end{itemize}
+    \item \fatsf{Open-loop Control:}
+    \begin{itemize}
+        \item Falls trotz Ressourcenreservierung Pakete an vollen Queues ankommen $\rightarrow$ schlechtes Design
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Proaktive Maßnahmen zur Vermeidung voller Queues}
+\begin{itemize}
+    \item \fatsf{Idee:}
+    \begin{itemize}
+        \item Nicht erst reagieren, \fatsf{wenn die Queue voll ist}, sondern schon \fatsf{vorher!}
+    \end{itemize}
+    \item \fatsf{Router erkennt Überlast frühzeitig, z.B.:}
+    \begin{itemize}
+        \item Durchschnittliche Queue-Länge über Grenzwert
+        \item Auslastung des Ausgangslinks konstant hoch
+        \item $\rightarrow$ Router wechselt in den \fatsf{Warnzustand}
+    \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\linewidth]{Chapter_4_Images/Proaktive Maßnahmen zur Vermeidung voller Queues.jpeg}
+\end{figure}
+\subsubsection*{Proaktive Maßnahme: Choke Packets}
+\begin{itemize}
+    \item \fatsf{Choke Packet}
+    \begin{itemize}
+        \item Ein spezielles Paket, das zurück zum Sender geschickt wird: \enquote{Langsamer senden!}
+    \end{itemize}
+    \item \fatsf{Probleme:}
+    \begin{enumerate}
+        \item Führt zu \fatsf{noch mehr Datenverkehr}, obwohl das Netz schon überlastet ist
+        \item \fatsf{Verzögerung:} Bis der Sender das Feedback erhält, hat er oft schon viele Pakete gesendet (Stichwort: \fatsf{Bandwidth-Delay Product})
+    \end{enumerate}
+\end{itemize}
+\subsubsection*{Proaktive Maßnahme: Warining Bit}
+\begin{itemize}
+    \item \fatsf{Alternative zu Choke Packets:}
+    \begin{itemize}
+        \item Router setzt ein \fatsf{Warnbit} im Header der Datenpakete
+        \item Der Empfänger kopiert das Bit in die \fatsf{ACKs}
+        \item Der Sender sieht das Warnbit in den ACKs $\rightarrow$ verringert seine Sende-Rate
+        \item Vorteil: Kein zusätzliches Paket nötig - \fatsf{effizienter}
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Proaktive Maßnahme: Random Early Detection (RED)}
+\begin{itemize}
+    \item \fatsf{RED-Mechanismus}
+    \begin{itemize}
+        \item Wenn sich Überlast \fatsf{anbahnt}, werden \fatsf{einige Pakete frühzeitig absichtlich verworfen!}
+        \item Klingt brutal, aber:
+        \begin{itemize}
+            \item Führt dazu, dass Sender \fatsf{frühzeitig drosseln}
+            \item So wird verhindert, dass \fatsf{alle Pakete} verloren gehen, wenn es richtig voll wird
+        \end{itemize}
+    \end{itemize}
+    \item \fatsf{Dropprobabilität}
+    \begin{itemize}
+        \item Beginnt bei 0 (unter \fatsf{MinThreshold})
+        \item Steigt \fatsf{linear} zwischen MinThreshold und MaxThreshold
+        \item Ab MaxThreshold: \fatsf{100\% Dropprobabilität}
+    \end{itemize}
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\linewidth]{Chapter_4_Images/RED.jpeg}
+\end{figure}
+\subsubsection*{Reaktion auf Feedback}
+\fatsf{Was macht der Sender, wenn er Feedback bekommt?}
+\begin{itemize}
+    \item \fatsf{Rate-basierte Protkolle:}
+    \begin{itemize}
+        \item Verringern einfach die Sende-Rate (z.B. um Faktor 2)
+        \item Frage: Wie und wann wieder erhöhten?
+    \end{itemize}
+    \item \fatsf{Window-basierte Protkolle (wie TCP):}
+    \begin{itemize}
+        \item Verringern \fatsf{Congestion Window}
+        \item Viele Strategien: z.B. \enquote{Multiplicative Decrease, Additive Increase}
+        \item Frage: Wie schnell darf das Fenster wachsen?
+        \item Große $\rightarrow$ Burst-Sendungen $\rightarrow$ \fatsf{kann zu neuer Überlast führen}
+    \end{itemize}
+\end{itemize}
+\clearpage
+\subsection{Internet UDP}
+\subsubsection*{Warum gibt es UDP überhaupt?}
+\begin{enumerate}
+    \item \fatsf{Kein Verbindungsaufbau = weniger Verzögerung:}
+    \begin{itemize}
+        \item TCP z.B. muss man erst eine Verbindung aufbauen, was Zeit kostet
+        \item UDP sendet einfach drauflos
+    \end{itemize}
+    \item \fatsf{Einfachheit:}
+    \begin{itemize}
+        \item Kein Verbindungsstatus wird am Sender oder Empfänger gespeichert
+        \item Keine aufwändige Steuerung
+    \end{itemize}
+    \item \fatsf{Kleiner Header:}
+    \begin{itemize}
+        \item UDP-Header ist nur 8 Bytes lang (im Gegensatz zu TCP mit 20 Bytes oder mehr)
+    \end{itemize}
+    \item \fatsf{Keine Staukontrolle (Congestion Control)}
+    \begin{itemize}
+        \item UDP schickt Pakete so schnell wie möglich
+        \item Kein langsamer machen bei Netzwerküberlastung
+    \end{itemize}
+    \item \fatsf{Warum nicht nur IP?}
+    \begin{itemize}
+        \item IP liefert Pakete nur bis zum Zielhost
+        \item UDP ermöglicht mehrere Anwendungen auf demselben Host (über Ports)
+        \item UDP ergänzt IP um eine einfache Multiplexing-Funktion (Ports)
+    \end{itemize}
+\end{enumerate}
+\subsubsection*{Wofür wird UDP oft verwendet?}
+\begin{itemize}
+    \item \fatsf{Streaming Multimedia:}
+    \begin{itemize}
+        \item Video, Audio, Live-Übertragungen
+        \item Verlust einiger Pakete ist tolerierbar
+        \item Wichtig ist, dass Daten schnell ankommen, nicht unbedingt komplett oder in der richtigen Reihenfolge
+    \end{itemize}
+    \item \fatsf{Andere Beispiele:}
+    \begin{itemize}
+        \item \fatsf{DNS} (Domain Name System)
+        \item \fatsf{SNMP} (Netzwerkmanagement)
+        \item Anwendungen, die ihre eigene Fehlerbehandlung machen
+    \end{itemize}
+\end{itemize}
+\subsubsection*{Zuverlässigkeit \& Reihenfolge}
+\begin{itemize}
+    \item UDP garantiert \fatsf{keine Reihenfolge} und keine Zuverlässigkeit
+    \item Wenn Anwendungen zuverlässige oder geordnete Daten wollen, müssen sie selbst \fatsf{Sequneznummern und Fehlerkorrektur} einbauen
+    \item Beispiel: TCP ist zuverlässig, UDP nicht - aber man kann mit UDP selbst sowas programmieren, wenn man will
+\end{itemize}
+\clearpage
+\subsubsection*{UDP-Segment Aufbau (Header)}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Chapter_4_Images/UDP Segment.jpeg}
+\end{figure}
+\subsubsection*{Verbindungslos und Demultiplexing}
+\begin{itemize}
+    \item UDP benutzt \fatsf{Portnummern}, um Pakete an die richtige Anwendung weiterzuleiten (Demultiplexing)
+    \item Beispiel: Ein Rechner kann mehrere UDP-Sockets öffnen, z.B. auf Port 64285, 99111, 99222
+    \item Wenn ein UDP-Paket ankommt, schaut das Betriebssystem auf die \fatsf{Zielportnummer} und gibt das Paket an die passende Anwendung (Socket) weiter
+    \item Da UDP \fatsf{verbindungslos} ist, gibt es keinen dauerhaften Kanal. Jedes Paket wird einzeln verarbeitet
+\end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{Chapter_4_Images/Connectionless Demultiplexing.jpeg}
+\end{figure}
+\clearpage
+\subsubsection*{Wichtige Punkte}
+\begin{itemize}
+    \item \fatsf{Socket = IP-Adresse + Port-Nummer} (zweier Tupel, nicht nur Port)
+    \item Mehrere Pakete von verschiedenen Quellen mit verschiedenen Quell-IP und Quell-Port können an denselben Ziel-Port (Socket) gehen
+    \item Der Quellport dient als \enquote{\fatsf{Rückadresse}}, damit Antworten zum richtigen Sender zurückgehen
+\end{itemize}
+\subsubsection*{Ziel der UDP-Checksumme}
+\begin{itemize}
+    \item \fatsf{Fehlererkennung:} Prüfen, ob beim Übertragen eines Segments (UDP-Datenpaket) z.B. \fatsf{Bits gekippt} sind (z.B. $0 \rightarrow 1$ oder $1 \rightarrow$ 0)
+    \item Die UDP-Checksumme ist \fatsf{einfach}, aber effektiv gegen viele Übertragungsfehler
+\end{itemize}
+\subsubsection*{Wie funktioniert die UDP-Checksumme?}
+\begin{itemize}
+    \item \fatsf{Sender-Seite (vor dem Versand):}
+    \begin{enumerate}
+        \item \fatsf{Teile das gesamte UDP-Segement} (Header + Daten) in \fatsf{16-Bit-Wörter} auf
+        \item \fatsf{Addiere alle 16-Bit-Wörter} miteinander
+        \begin{itemize}
+            \item Bei Überlauf (also \enquote{Carry out} von links), \fatsf{wrap-around} $\rightarrow$ du addierst ihn \fatsf{wieder dazu}
+        \end{itemize}
+        \item \fatsf{Nimm das 1-Komplement} (also invertiere jedes Bit: $0 \rightarrow 1$, $1 \rightarrow 0$)
+        \item \fatsf{Schreibe dieses Ergebnis in das Checksum-Feld} des UDP-Headers
+        \item Versende das Segment
+    \end{enumerate} 
+    \item \fatsf{Empfänger-Seite (nach Empfang):}
+    \begin{enumerate}
+        \item Erhalte das UDP-Segment inkl. Checksum-Wert
+        \item \fatsf{Addiere alle 16-Bit-Wörter} (inkl. der empfangenen Checksum)
+        \item Auch hier: Bei Überlauf - Wrap-around wieder addieren
+        \item \fatsf{Ergebnis sollte 0xFFFF sein} (alle Bits = 1)
+        \begin{itemize}
+            \item Wenn ja $\rightarrow$ vermutlich \fatsf{kein Fehler}
+            \item Wenn nein $\rightarrow$ \fatsf{Fehler erkannt}, Segment wird verworfen
+        \end{itemize}
+    \end{enumerate}
+\end{itemize}
+\subsubsection*{Beispiel: Internet Checksum}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{Chapter_4_Images/Beispiel: Internet Checksuum.jpeg}
+\end{figure}
