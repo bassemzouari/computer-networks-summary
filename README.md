@@ -4,8 +4,7 @@ Comprehensive LaTeX-based lecture summary for a university-level
 Computer Networks course covering routing algorithms, Internet  
 architecture, and modern networking concepts.
 
-Language: German 🇩🇪  
-This repository contains German lecture summaries and notes.
+> Language: German 🇩🇪  
 
 The project focuses on structured technical documentation,  
 formal networking concepts, and concise explanations of routing  
