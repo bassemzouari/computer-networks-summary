@@ -1,113 +1,24 @@
-# Computer Networks Lecture Summary
+# Computer Networks and Distributed Systems — Notes
 
-Comprehensive LaTeX-based lecture summary for a university-level  
-Computer Networks course covering routing algorithms, Internet  
-architecture, and modern networking concepts.
+LaTeX notes in German for *Computernetze und verteilte Systeme* (summer semester 2025).
 
-> Language: German 🇩🇪  
+I collected explanations and examples on network architecture, addressing, routing, and the protocols used to connect networks. The notes include topics such as distance-vector and link-state routing, autonomous systems, and IP networking.
 
-The project focuses on structured technical documentation,  
-formal networking concepts, and concise explanations of routing  
-algorithms, Internet protocols, and distributed communication models.
+[Read the PDF](output/summary.pdf)
 
----
+## Current scope
 
-## Topics Covered
+`main.tex` includes chapters 1–4. A fifth chapter file exists, but it currently contains only a heading for multicast and is **not** part of the compiled document. This is a partial course summary.
 
-- Network Fundamentals  
-- Internet Architecture  
-- Routing Basics  
-- Flooding & Static Routing  
-- Adaptive Routing Algorithms  
-- Distance Vector Routing (DVR)  
-- Count-to-Infinity Problem  
-- Split Horizon & Poison Reverse  
-- Link-State Routing (Dijkstra)  
-- Hierarchical Routing  
-- Autonomous Systems (AS)  
-- Intra-AS vs Inter-AS Routing  
-- Border Gateway Protocol (BGP)  
-- Routing Policies & Scalability  
-- Mobile Routing (DSR)  
-- Overlay Networks  
-- Internet Protocol (IPv4 & IPv6)  
-- Subnetting & CIDR  
+## Files
 
----
+- [Compiled PDF](output/summary.pdf)
+- `main.tex`: document entry point
+- `chapters/`: LaTeX source for individual topics
+- `styles/`: local document class and style files
 
-## Build Instructions
+## Notes on building and reuse
 
-Requirements:
-- A LaTeX installation (e.g. MikTeX or TeX Live)
-- Installation of the TU Darmstadt template:  
-  https://github.com/tudace/tuda_latex_templates
-- Pygments for code highlighting:  
-  `pip install Pygments`
+The sources use a customized TU Darmstadt LaTeX template (see `styles/`) and require a suitable TeX setup. Packages used by the template may require shell escape and Pygments. The PDF above is provided for reading without a local build.
 
-Clone the repository:
-
-```bash
-git clone <your-repo-url>
-```
-
-Compile using:
-
-```bash
-latexmk --shell-escape
-```
-
-If using VS Code (LaTeX Workshop), add:
-
-```jsonc
-"latex-workshop.latex.tools": [
-    {
-        "name": "latexmk",
-        "command": "latexmk",
-        "args": [
-            "--shell-escape",
-            "-synctex=1",
-            "-interaction=nonstopmode",
-            "-file-line-error",
-            "-lualatex",
-            "-outdir=%OUTDIR%",
-            "%DOC%"
-        ]
-    },
-],
-```
-
----
-
-## Preview
-
-The compiled PDF can be found in:
-
-```text
-output/summary.pdf
-```
-
----
-
-## Goals of the Project
-
-- Create a structured and maintainable networking reference  
-- Summarize theoretical and practical networking concepts  
-- Provide concise explanations of routing algorithms and protocols  
-- Improve technical documentation and LaTeX workflow skills  
-
----
-
-## Disclaimer
-
-This document was independently written for educational purposes.  
-It serves as a personal lecture summary and study reference.
-
-Some topics may be based on university lecture material and publicly  
-known networking concepts. All rights to original course content remain  
-with their respective owners.
-
----
-
-## License
-
-This repository is licensed under the MIT License.
+These are personal study notes, not official teaching materials. The repository's [MIT license](LICENSE) does not override the rights or licenses of third-party figures, course materials, or template components.
